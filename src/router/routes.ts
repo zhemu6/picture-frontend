@@ -71,6 +71,17 @@ const routes = [
   },
 
   {
+    path: '/picture/:id',
+    name: '图片详情',
+    props: true,
+    component: () => import('@/pages/PictureDetailPage.vue'),
+    // component: UserManagePage,
+    meta: {
+      hideInMenu: true,
+    },
+  },
+
+  {
     path: '/noAuth',
     name: '无权限页面',
     // 懒加载
