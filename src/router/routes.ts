@@ -52,10 +52,21 @@ const routes = [
 
   {
     path: '/add_picture',
-    name: '图片上传',
+    name: '创建图片',
     component: () => import('@/pages/AddPicturePage.vue'),
     // component: UserManagePage,
     meta: {
+      // access: ACCESS_CONSTANTS.ADMIN,
+    },
+  },
+
+  {
+    path: '/add_picture/batch',
+    name: '批量创建图片',
+    component: () => import('@/pages/AddPictureBatchPage.vue'),
+    // component: UserManagePage,
+    meta: {
+      hideInMenu: true,
       access: ACCESS_CONSTANTS.ADMIN,
     },
   },
