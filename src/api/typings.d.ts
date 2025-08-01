@@ -170,6 +170,7 @@ declare namespace API {
     reviewerId?: number
     tags?: string
     takenTime?: string
+    thumbnailUrl?: string
     updateTime?: string
     url?: string
     userId?: number
@@ -181,6 +182,14 @@ declare namespace API {
     introduction?: string
     name?: string
     tags?: string[]
+  }
+
+  type PictureFavoriteRequest = {
+    pictureId?: number
+  }
+
+  type PictureLikeRequest = {
+    pictureId?: number
   }
 
   type PictureQueryRequest = {
@@ -254,12 +263,16 @@ declare namespace API {
     createTime?: string
     editTime?: string
     exposureTime?: string
+    favoriteCount?: number
     fnumber?: number
     focalLength?: number
+    hasFavorite?: boolean
+    hasLiked?: boolean
     id?: number
     introduction?: string
     iso?: number
     lensModel?: string
+    likeCount?: number
     name?: string
     picFormat?: string
     picHeight?: number
@@ -268,6 +281,7 @@ declare namespace API {
     picWidth?: number
     tags?: string[]
     takenTime?: string
+    thumbnailUrl?: string
     updateTime?: string
     url?: string
     user?: UserVO

@@ -82,6 +82,18 @@ const routes = [
   },
 
   {
+    path: '/user/:id',
+    name: '用户个人主页',
+    props: true,
+    component: () => import('@/pages/user/UserPersonalPage.vue'),
+    // component: UserManagePage,
+    meta: {
+      hideInMenu: true,
+    },
+
+  },
+
+  {
     path: '/picture/:id',
     name: '图片详情',
     props: true,
@@ -91,6 +103,8 @@ const routes = [
       hideInMenu: true,
     },
   },
+
+
 
   {
     path: '/noAuth',

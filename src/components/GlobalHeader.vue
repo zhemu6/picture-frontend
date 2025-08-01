@@ -36,7 +36,7 @@
               <template #overlay>
                 <a-menu>
                   <a-menu-item>
-                    <a href="javascript:;">个人主页</a>
+                    <a @click="doClickUser(loginUserStore.loginUser)">个人主页</a>
                   </a-menu-item>
                   <a-menu-item @click="doLogout">
                     <LogoutOutlined />
@@ -130,6 +130,16 @@ const doLogout = async () => {
     message.error('退出登录失败,' + res.data.message)
   }
 }
+
+// 点击个人主页跳转到用户详情页面
+// 点击图片跳转到图片详情页面
+const doClickUser =  (user:API.UserVO) => {
+  router.push({
+    path: `/user/${user.id}`,
+  })
+}
+
+
 </script>
 
 <style scoped>
