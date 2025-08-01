@@ -60,6 +60,12 @@
             <a-descriptions-item label="焦距">
               {{ picture.focalLength ?? '-' }}
             </a-descriptions-item>
+            <a-descriptions-item label="点赞数">
+              {{ picture.likeCount ?? '-' }}
+            </a-descriptions-item>
+            <a-descriptions-item label="收藏数">
+              {{ picture.favoriteCount ?? '-' }}
+            </a-descriptions-item>
           </a-descriptions>
           <!-- 图片操作 -->
           <a-space wrap>
