@@ -1,14 +1,13 @@
 <template>
   <div id="pictureManagePage">
-
     <a-flex justify="space-between">
       <h2>图片管理</h2>
       <a-space>
         <a-button type="primary" href="/add_picture" target="_blank"> 创建图片 </a-button>
-        <a-button type="primary" ghost href="/add_picture/batch" > 批量创建 </a-button>
+        <a-button type="primary" ghost href="/add_picture/batch"> 批量创建 </a-button>
       </a-space>
     </a-flex>
-    <div style="margin-bottom: 16px"/>
+    <div style="margin-bottom: 16px" />
     <!--  搜索表单  -->
     <a-form style="margin-bottom: 16px" layout="inline" :model="searchParams" @finish="doSearch">
       <a-form-item label="关键词">
@@ -49,6 +48,7 @@
       :columns="columns"
       :data-source="dataList"
       :pagination="pagination"
+      :scroll="{ x: 1400 }"
       @change="doTableChange"
     >
       <template #bodyCell="{ column, record }">
@@ -56,6 +56,7 @@
         <template v-if="column.dataIndex === 'url'">
           <a-image :src="record.url" alt="" style="width: 50px; height: 50px"></a-image>
         </template>
+
         <!--标签展示-->
         <template v-if="column.dataIndex === 'tags'">
           <a-space wrap>
@@ -155,55 +156,74 @@ import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 // 定义表格显示哪些列
 const columns = [
   {
-    title: 'id',
+    title: 'ID',
     dataIndex: 'id',
     width: 80,
+    fixed: 'left', // 固定在左侧
   },
   {
     title: '图片',
     dataIndex: 'url',
+    width: 80,
+    align: 'center',
   },
   {
     title: '名称',
     dataIndex: 'name',
+    width: 150,
+    ellipsis: true,
   },
   {
     title: '简介',
     dataIndex: 'introduction',
+    width: 200,
     ellipsis: true,
   },
   {
     title: '类型',
     dataIndex: 'category',
+    width: 100,
+    align: 'center',
   },
   {
     title: '标签',
     dataIndex: 'tags',
+    width: 150,
   },
   {
     title: '图片信息',
     dataIndex: 'picInfo',
+    width: 180,
   },
   {
-    title: '用户id',
+    title: '用户ID',
     dataIndex: 'userId',
     width: 80,
+    align: 'center',
   },
   {
     title: '审核信息',
     dataIndex: 'reviewMessage',
+    width: 200,
   },
   {
     title: '创建时间',
     dataIndex: 'createTime',
+    width: 160,
+    align: 'center',
   },
   {
     title: '编辑时间',
     dataIndex: 'editTime',
+    width: 160,
+    align: 'center',
   },
   {
     title: '操作',
     key: 'action',
+    width: 200,
+    fixed: 'right', // 固定在右侧
+    align: 'center',
   },
 ]
 

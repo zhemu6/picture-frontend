@@ -133,29 +133,96 @@ const doLogout = async () => {
 
 // 点击个人主页跳转到用户详情页面
 // 点击图片跳转到图片详情页面
-const doClickUser =  (user:API.UserVO) => {
+const doClickUser = (user: API.UserVO) => {
   router.push({
     path: `/user/${user.id}`,
   })
 }
-
-
 </script>
 
 <style scoped>
-.title-bar {
-  display: flex;
+#globalHeader {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+#globalHeader :deep(.ant-row) {
+  height: 64px;
   align-items: center;
 }
 
+.title-bar {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  transition: all 0.3s ease;
+}
+
+.title-bar:hover {
+  transform: translateY(-1px);
+}
+
 .title {
-  color: black;
-  font-size: 16px;
+  color: #1e293b;
+  font-size: 20px;
+  font-weight: 700;
   margin-left: 16px;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .logo {
-  height: 48px;
+  height: 40px;
+  width: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* 菜单样式美化 */
+#globalHeader :deep(.ant-menu) {
+  background: transparent;
+  border-bottom: none;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+#globalHeader :deep(.ant-menu-item) {
+  border-radius: 8px;
+  margin: 0 4px;
+  transition: all 0.3s ease;
+  color: #64748b;
+}
+
+#globalHeader :deep(.ant-menu-item:hover) {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+#globalHeader :deep(.ant-menu-item-selected) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+#globalHeader :deep(.ant-menu-item-selected::after) {
+  display: none;
 }
 
 .user-login-status {
@@ -169,27 +236,113 @@ const doClickUser =  (user:API.UserVO) => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 0 8px;
-  border-radius: 4px;
-  transition: all 0.3s;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #e2e8f0;
+  backdrop-filter: blur(10px);
+  height: 32px;
 }
 
 .user-info:hover {
-  background-color: rgba(0, 0, 0, 0.025);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .user-dropdown {
   display: flex;
   align-items: center;
-  color: rgba(0, 0, 0, 0.85);
+  color: #1e293b;
   text-decoration: none;
+  font-weight: 500;
 }
 
 .username {
-  margin: 0 4px;
-  max-width: 80px;
+  margin: 0 8px;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* 登录按钮美化 */
+#globalHeader :deep(.ant-btn-primary) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  border-radius: 20px;
+  padding: 0 24px;
+  height: 36px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+#globalHeader :deep(.ant-btn-primary:hover) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* 用户头像美化 */
+#globalHeader :deep(.ant-avatar) {
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.user-info:hover :deep(.ant-avatar) {
+  border-color: #3b82f6;
+  transform: scale(1.05);
+}
+
+/* 下拉箭头美化 */
+#globalHeader :deep(.anticon-down) {
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.user-info:hover :deep(.anticon-down) {
+  color: #3b82f6;
+  transform: rotate(180deg);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  #globalHeader {
+    padding: 0 16px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-left: 12px;
+  }
+
+  .logo {
+    height: 36px;
+    width: 36px;
+  }
+
+  .username {
+    max-width: 60px;
+  }
+}
+
+@media (max-width: 576px) {
+  #globalHeader {
+    padding: 0 12px;
+  }
+
+  .title {
+    font-size: 16px;
+    margin-left: 8px;
+  }
+
+  .username {
+    display: none;
+  }
 }
 </style>
