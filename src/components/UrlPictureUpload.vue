@@ -29,6 +29,7 @@ const loading = ref<boolean>(false)
 
 interface Props {
   picture?: API.PictureVO
+  spaceId?: number
   onSuccess?: (newPicture: API.PictureVO) => void
 }
 
@@ -41,12 +42,13 @@ const handleUpload = async () => {
   loading.value = true
 
   try {
-    const params:API.PictureUploadRequest = {fileUrl:fileUrl.value}
+    const params:API.PictureUploadRequest = {fileUrl:fileUrl.value};
+    params.spaceId = props.spaceId;
     if(props.picture){
-      params.id = props.picture.id
+      params.id = props.picture.id;
     }
 
-    const res = await uploadPictureByUrlUsingPost(params)
+    const res = await uploadPictureByUrlUsingPost(params);
     if (res.data.code === 0 && res.data.data) {
       message.success('图片上传成功')
       // 将上传成功的图片信息传递给父组件

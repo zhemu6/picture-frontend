@@ -36,7 +36,10 @@
               <template #overlay>
                 <a-menu>
                   <a-menu-item>
-                    <a @click="doClickUser(loginUserStore.loginUser)">个人主页</a>
+                    <a @click="doClickUser(loginUserStore.loginUser)"><HomeOutlined /> 个人主页</a>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <router-link to="/my_space"><UserOutlined/>我的空间 </router-link>
                   </a-menu-item>
                   <a-menu-item @click="doLogout">
                     <LogoutOutlined />
@@ -55,19 +58,14 @@
     </a-row>
   </div>
 </template>
+
 <script lang="ts" setup>
 import { computed, h, ref } from 'vue'
-import {
-  MailOutlined,
-  HomeOutlined,
-  AppstoreOutlined,
-  LogoutOutlined,
-  SettingOutlined,
-} from '@ant-design/icons-vue'
+
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/userLoginUserStore'
-import { DownOutlined } from '@ant-design/icons-vue'
+import { DownOutlined,LogoutOutlined,UserOutlined ,HomeOutlined} from '@ant-design/icons-vue'
 import { userLogoutUsingPost } from '@/api/userController'
 import { routes } from '@/router/routes'
 import checkAccess from '@/access/checkAccess'

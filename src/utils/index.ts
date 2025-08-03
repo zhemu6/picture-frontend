@@ -1,7 +1,7 @@
 import { saveAs } from 'file-saver'
 
 /**
- * 格式化文件大小
+ * 格式化文件大小将输入的大小 格式化成B KB MB GB
  * @param size
  */
 export const formatSize = (size?: number) => {

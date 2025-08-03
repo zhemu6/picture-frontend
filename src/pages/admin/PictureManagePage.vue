@@ -238,7 +238,10 @@ const searchParams = reactive<API.PictureQueryRequest>({
 })
 // 获取数据
 const fetchData = async () => {
-  const res = await listPictureByPageUsingPost({ ...searchParams })
+  const res = await listPictureByPageUsingPost({
+    ...searchParams,
+    nullSpaceId: true
+  })
   if (res.data.code === 0 && res.data.data) {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0

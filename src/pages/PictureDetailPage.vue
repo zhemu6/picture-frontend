@@ -226,7 +226,6 @@ import router from '@/router'
 interface Props {
   id: string | number
 }
-
 const props = defineProps<Props>()
 
 const picture = ref<API.PictureVO>({})
@@ -362,19 +361,35 @@ const canEdit = computed(() => {
 
 // 编辑事件
 const doEdit = () => {
-  router.push('/add_picture?id=' + picture.value.id)
+  router.push({
+    path: "/add_picture",
+    query: { id: picture.value.id ,
+      spaceId: picture.value.spaceId}
+  })
 }
-
 // 删除事件
 const doDelete = async () => {
   const id = picture.value.id
   if (!id) {
     return
   }
+
+  // 在删除之前先保存 spaceId
+  const spaceId = picture.value.spaceId
+
   const res = await deletePictureUsingPost({ id })
   if (res.data.code === 0) {
     message.success('删除成功')
-    await router.push({ path: '/', force: true })
+
+    // 根据 spaceId 决定跳转路径
+    if (spaceId) {
+      // 如果有 spaceId，跳转到对应的 space 页面
+      await router.push({ path: `/space/${spaceId}`, force: true })
+    } else {
+      // 如果没有 spaceId（公共删除），跳转到首页
+      await router.push({ path: '/', force: true })
+    }
+
   } else {
     message.error('删除失败')
   }

@@ -14,7 +14,6 @@ const routes = [
   {
     path: '/',
     name: '主页',
-    // component: HomeView,
     component: () => import('@/pages/HomePage.vue'),
 
     meta: {
@@ -24,7 +23,6 @@ const routes = [
   {
     path: '/user/login',
     name: '用户登录',
-    // component: UserLoginPage,
     component: () => import('@/pages/user/UserLoginPage.vue'),
     meta: {
       hideInMenu: true,
@@ -34,8 +32,6 @@ const routes = [
     path: '/user/register',
     name: '用户注册',
     component: () => import('@/pages/user/UserRegisterPage.vue'),
-
-    // component: UserRegisterPage,
     meta: {
       hideInMenu: true,
     },
@@ -44,7 +40,6 @@ const routes = [
     path: '/admin/userManage',
     name: '用户管理',
     component: () => import('@/pages/admin/UserManagePagev1.vue'),
-    // component: UserManagePage,
     meta: {
       access: ACCESS_CONSTANTS.ADMIN,
     },
@@ -54,8 +49,8 @@ const routes = [
     path: '/add_picture',
     name: '创建图片',
     component: () => import('@/pages/AddPicturePage.vue'),
-    // component: UserManagePage,
     meta: {
+      access: ACCESS_CONSTANTS.USER,
       // access: ACCESS_CONSTANTS.ADMIN,
     },
   },
@@ -64,7 +59,7 @@ const routes = [
     path: '/add_picture/batch',
     name: '批量创建图片',
     component: () => import('@/pages/AddPictureBatchPage.vue'),
-    // component: UserManagePage,
+
     meta: {
       hideInMenu: true,
       access: ACCESS_CONSTANTS.ADMIN,
@@ -75,7 +70,6 @@ const routes = [
     path: '/admin/pictureManage',
     name: '图片管理',
     component: () => import('@/pages/admin/PictureManagePage.vue'),
-    // component: UserManagePage,
     meta: {
       access: ACCESS_CONSTANTS.ADMIN,
     },
@@ -86,7 +80,6 @@ const routes = [
     name: '用户个人主页',
     props: true,
     component: () => import('@/pages/user/UserPersonalPage.vue'),
-    // component: UserManagePage,
     meta: {
       hideInMenu: true,
     },
@@ -98,13 +91,49 @@ const routes = [
     name: '图片详情',
     props: true,
     component: () => import('@/pages/PictureDetailPage.vue'),
-    // component: UserManagePage,
     meta: {
       hideInMenu: true,
     },
   },
 
+  {
+    path: '/admin/spaceManage',
+    name: '空间管理',
+    component: () => import('@/pages/admin/SpaceManagePage.vue'),
+    meta: {
+      access: ACCESS_CONSTANTS.ADMIN,
+    },
+  },
 
+  {
+    path: '/add_space',
+    name: '创建空间',
+    component: () => import('@/pages/AddSpacePage.vue'),
+
+    meta: {
+      access: ACCESS_CONSTANTS.USER,
+    },
+  },
+  {
+    path: '/my_space',
+    name: '我的空间',
+    component: () => import('@/pages/MySpacePage.vue'),
+
+    meta: {
+      access: ACCESS_CONSTANTS.USER,
+      // access: ACCESS_CONSTANTS.ADMIN,
+    },
+  },
+
+  {
+    path: '/space/:id',
+    name: '空间详情',
+    props: true,
+    component: () => import('@/pages/SpaceDetailPage.vue'),
+    meta: {
+      hideInMenu: true,
+    },
+  },
 
   {
     path: '/noAuth',
