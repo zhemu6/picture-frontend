@@ -215,16 +215,167 @@
 
         <ShareModal ref="shareModalRef" :link="shareLink" />
 
-        <!-- 评论区占位 -->
+        <!-- 评论区 -->
         <a-card :bordered="false" class="info-block comment-card">
           <template #title>
             <div class="card-title">
               <span class="title-icon">💭</span>
               <span>评论区</span>
-              <a-badge count="开发中" color="#f50" style="margin-left: 8px" />
+              <a-badge
+                :count="commentTotal || 0"
+                :number-style="{ backgroundColor: '#52c41a' }"
+                style="margin-left: 8px"
+              />
             </div>
           </template>
-          <a-empty description="该模块正在开发中，敬请期待..." />
+
+          <!-- 评论输入框 -->
+          <div class="comment-input-area">
+            <a-textarea
+              v-model:value="commentContent"
+              placeholder="说点什么吧..."
+              :auto-size="{ minRows: 2, maxRows: 6 }"
+              :maxlength="500"
+              show-count
+              class="comment-textarea"
+            />
+            <div class="comment-submit-area">
+              <a-button
+                type="primary"
+                @click="submitComment"
+                :loading="commentSubmitting"
+                :disabled="!commentContent.trim()"
+              >
+                发表评论
+              </a-button>
+            </div>
+          </div>
+          {{ replyingToComment }}
+          <!-- 评论列表 -->
+          <a-divider style="margin: 16px 0">评论列表</a-divider>
+
+          <div class="comments-list">
+            <a-spin :spinning="commentsLoading">
+              <template v-if="comments.length">
+                <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                  <div class="comment-avatar">
+                    <a-avatar :size="40" :src="comment.userAvatar">
+                      <template #icon><UserOutlined /></template>
+                    </a-avatar>
+                  </div>
+                  <div class="comment-content">
+                    <div class="comment-header">
+                      <span class="comment-author">{{ comment.userName || '匿名用户' }}</span>
+                      <span class="comment-time">{{ formatCommentTime(comment.createTime) }}</span>
+                    </div>
+                    <div class="comment-text">{{ comment.content }}</div>
+                    <div class="comment-actions">
+                      <a-button
+                        type="link"
+                        size="small"
+                        @click="replyToComment(comment)"
+                        class="action-btn"
+                      >
+                        <template #icon><CommentOutlined /></template>
+                        回复
+                      </a-button>
+                      <a-button
+                        v-if="comment.isSelf"
+                        type="link"
+                        danger
+                        size="small"
+                        @click="deleteComment(comment.id,null)"
+                        class="action-btn"
+                      >
+                        <template #icon><DeleteOutlined /></template>
+                        删除
+                      </a-button>
+                      <a-button
+                        type="link"
+                        size="small"
+                        @click="toggleChildComments(comment.id)"
+                        class="action-btn"
+                      >
+                        <template #icon>
+                          <DownOutlined v-if="!expandedComments[comment.id]" />
+                          <UpOutlined v-else />
+                        </template>
+                        {{ !expandedComments[comment.id] ? '查看回复' : '收起回复' }}
+                      </a-button>
+                    </div>
+
+                    <!-- 子评论区域 -->
+                    <div v-if="expandedComments[comment.id]" class="child-comments-area">
+                      <a-spin :spinning="childCommentsLoading[comment.id]">
+                        <div v-if="childComments[comment.id]?.length" class="child-comments-list">
+                          <div
+                            v-for="childComment in childComments[comment.id]"
+                            :key="childComment.id"
+                            class="child-comment-item"
+                          >
+                            <div class="comment-avatar">
+                              <a-avatar :size="32" :src="childComment.userAvatar">
+                                <template #icon><UserOutlined /></template>
+                              </a-avatar>
+                            </div>
+                            <div class="comment-content">
+                              <div class="comment-header">
+                                <span class="comment-author">{{
+                                  childComment.userName || '匿名用户'
+                                }}</span>
+                                <span class="comment-time">{{
+                                  formatCommentTime(childComment.createTime)
+                                }}</span>
+                              </div>
+                              <div class="comment-text">{{ childComment.content }}</div>
+                              <div class="comment-actions">
+                                <a-button
+                                  type="link"
+                                  size="small"
+                                  @click="replyToComment(childComment, comment.id)"
+                                  class="action-btn"
+                                >
+                                  <template #icon><CommentOutlined /></template>
+                                  回复
+                                </a-button>
+                                <a-button
+                                  v-if="childComment.isSelf"
+                                  type="link"
+                                  danger
+                                  size="small"
+                                  @click="deleteComment(childComment.id,childComment.parentId)"
+                                  class="action-btn"
+                                >
+                                  <template #icon><DeleteOutlined /></template>
+                                  删除
+                                </a-button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <a-empty v-else description="暂无回复" />
+                      </a-spin>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 分页 -->
+                <div class="pagination-container">
+                  <a-pagination
+                    v-model:current="current"
+                    :total="commentTotal"
+                    :pageSize="pageSize"
+                    @change="handlePageChange"
+                    size="small"
+                    show-size-changer
+                    :page-size-options="['5', '10', '20']"
+                    @showSizeChange="handleSizeChange"
+                  />
+                </div>
+              </template>
+              <a-empty v-else description="暂无评论，快来发表第一条评论吧！" />
+            </a-spin>
+          </div>
         </a-card>
       </a-col>
     </a-row>
@@ -232,14 +383,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref, watch } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController'
 import { likePictureUsingPost } from '@/api/pictureLikeController'
 import { favoritePictureUsingPost } from '@/api/pictureFavoriteController'
+import {
+  addPictureCommentUsingPost,
+  deletePictureCommentUsingPost,
+  listPictureCommentVoByPageUsingPost,
+} from '@/api/pictureCommentController'
 import { message } from 'ant-design-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formatSize, downloadImage, toHexColor } from '@/utils'
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/zh-cn'
 import { useLoginUserStore } from '@/stores/userLoginUserStore'
 import {
   EditOutlined,
@@ -247,6 +405,9 @@ import {
   ShareAltOutlined,
   DeleteOutlined,
   UserOutlined,
+  CommentOutlined,
+  DownOutlined,
+  UpOutlined,
 } from '@ant-design/icons-vue'
 import router from '@/router'
 import ShareModal from '@/components/ShareModal.vue'
@@ -259,6 +420,19 @@ const props = defineProps<Props>()
 const picture = ref<API.PictureVO>({})
 const isLiking = ref(false)
 const isFavoriting = ref(false)
+
+// 评论相关数据
+const commentContent = ref('')
+const comments = ref<API.PictureCommentVO[]>([]) // 一级评论列表
+const commentTotal = ref(0)
+const current = ref(1)
+const pageSize = ref(10)
+const commentsLoading = ref(false)
+const commentSubmitting = ref(false)
+const replyingToComment = ref<API.PictureCommentVO | null>(null) // 当前正在回复的评论
+const expandedComments = ref<Record<string, boolean>>({}) // 记录哪些评论已展开子评论
+const childComments = ref<Record<string, API.PictureCommentVO[]>>({}) // 子评论列表，键为父评论ID
+const childCommentsLoading = ref<Record<string, boolean>>({}) // 子评论加载状态
 
 // 根据后端返回的状态来判断是否已点赞/收藏
 const isLiked = computed(() => picture.value.hasLiked || false)
@@ -437,8 +611,210 @@ const doDownload = () => {
   downloadImage(picture.value.url)
 }
 
+// 格式化评论时间
+const formatCommentTime = (time: string | undefined) => {
+  if (!time) return '未知时间'
+  dayjs.extend(relativeTime)
+  dayjs.locale('zh-cn')
+  return dayjs(time).fromNow()
+}
+
+// 提交评论
+const submitComment = async () => {
+  const loginUser = loginUserStore.loginUser
+  if (!loginUser.id) {
+    message.warning('请先登录后再发表评论')
+    return
+  }
+
+  if (!commentContent.value.trim()) {
+    message.warning('评论内容不能为空')
+    return
+  }
+
+  try {
+    commentSubmitting.value = true
+
+    // 确定parentId
+    let parentId = 0 // 默认为一级评论
+
+    // 如果是回复某条评论
+    // 我是回复某条信息 如果这个信息有值 1 回复一级评论 如果是一级评论 parentid就是回复的id 那我就是 2 回复二级评论 parentid 就是回复的这个二级评论的
+    if (replyingToComment.value) {
+      if(replyingToComment.value.parentId!=0){
+        // 如果回复的是子评论，则parentId为该子评论的parentId
+        parentId = replyingToComment.value.parentId
+      }else{
+        // 如果回复的是一级评论，则parentId为该一级评论的id
+        parentId = replyingToComment.value.id
+      }
+
+    }
+    console.log("父评论id"+parentId)
+    const res = await addPictureCommentUsingPost({
+      pictureId: picture.value.id,
+      parentId: parentId,
+      content: commentContent.value.trim(),
+    })
+
+    if (res.data.code === 0) {
+      message.success('评论发表成功')
+      commentContent.value = ''
+      replyingToComment.value = null
+
+      // 如果是回复子评论，则刷新对应的子评论列表
+      if (parentId !== 0) {
+        await fetchChildComments(parentId)
+      } else {
+        // 否则刷新一级评论列表
+        await fetchComments()
+      }
+    } else {
+      message.error('评论发表失败：' + res.data.message)
+    }
+  } catch (error: any) {
+    message.error('评论发表失败：' + error.message)
+  } finally {
+    commentSubmitting.value = false
+  }
+}
+
+// 获取评论列表
+const fetchComments = async () => {
+  if (!props.id) return
+  try {
+    commentsLoading.value = true
+    const res = await listPictureCommentVoByPageUsingPost({
+      pictureId: picture.value.id,
+      current: current.value,
+      pageSize: pageSize.value,
+      parentId: 0,
+      sortField: 'createTime',
+      sortOrder: 'ascend',
+    })
+
+    if (res.data.code === 0 && res.data.data) {
+      comments.value = res.data.data.records || []
+      commentTotal.value = res.data.data.total || 0
+    } else {
+      message.error('获取评论失败：' + res.data.message)
+    }
+  } catch (error: any) {
+    message.error('获取评论失败：' + error.message)
+  } finally {
+    commentsLoading.value = false
+  }
+}
+
+// 回复评论
+const replyToComment = (comment: API.PictureCommentVO, parentId?: number | string) => {
+  const userName = comment.userName || '用户'
+  commentContent.value = `@${userName} `
+  // 设置当前回复的评论ID
+  replyingToComment.value = comment
+  // 聚焦到评论输入框
+  const textarea = document.querySelector('.comment-textarea textarea')
+  if (textarea) {
+    textarea.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      ;(textarea as HTMLTextAreaElement).focus()
+    }, 300)
+  }
+}
+
+// 切换显示子评论
+const toggleChildComments = async (commentId: number | undefined) => {
+  if (!commentId) return
+
+  // 转换为字符串作为对象键
+  const commentIdStr = String(commentId)
+
+  // 切换展开状态
+  expandedComments.value[commentIdStr] = !expandedComments.value[commentIdStr]
+
+  // 如果是展开状态且还没有加载过子评论，则加载子评论
+  if (expandedComments.value[commentIdStr] && !childComments.value[commentIdStr]) {
+    await fetchChildComments(commentId)
+  }
+}
+
+// 获取子评论
+const fetchChildComments = async (parentId: number | undefined) => {
+  if (!parentId || !picture.value.id) return
+
+  const parentIdStr = String(parentId)
+
+  try {
+    // 设置加载状态
+    childCommentsLoading.value[parentIdStr] = true
+
+    const res = await listPictureCommentVoByPageUsingPost({
+      pictureId: picture.value.id,
+      parentId: parentId,
+      current: 1,
+      pageSize: 10, // 子评论一次性加载更多
+      sortField: 'createTime',
+      sortOrder: 'ascend', // 子评论按时间正序排列
+    })
+
+    if (res.data.code === 0 && res.data.data) {
+      childComments.value[parentIdStr] = res.data.data.records || []
+    } else {
+      message.error('获取回复失败：' + res.data.message)
+    }
+  } catch (error: any) {
+    message.error('获取回复失败：' + error.message)
+  } finally {
+    childCommentsLoading.value[parentIdStr] = false
+  }
+}
+
+// 删除评论
+const deleteComment = async (commentId: number | undefined,parentId:number|undefined) => {
+  if (!commentId) return
+
+  try {
+    const res = await deletePictureCommentUsingPost({ id: commentId })
+    if (res.data.code === 0) {
+      message.success('评论删除成功')
+      // 重新加载评论列表
+      fetchComments()
+      // 如果删的是二级回复 就得刷新二级恢复列表
+      if(parentId){
+        fetchChildComments(parentId)
+      }
+    } else {
+      message.error('删除失败：' + res.data.message)
+    }
+  } catch (error: any) {
+    message.error('删除失败：' + error.message)
+  }
+}
+
+// 判断是否可以删除评论
+const canDeleteComment = (comment: API.PictureCommentVO) => {
+  const loginUser = loginUserStore.loginUser
+  if (!loginUser.id) return false
+
+  // 自己的评论或管理员可以删除
+  return loginUser.id === comment.userId || loginUser.userRole === 'admin'
+}
+
+// 分页变化
+const handlePageChange = (page: number) => {
+  current.value = page
+  fetchComments()
+}
+
+// 每页条数变化
+const handleSizeChange = (current: number, size: number) => {
+  pageSize.value = size
+  fetchComments()
+}
+
 onMounted(() => {
   fetchPictureDetail()
+  fetchComments()
 })
 </script>
 
@@ -956,6 +1332,134 @@ onMounted(() => {
 .comment-card {
   background: #ffffff;
   border-left: 4px solid #8b5cf6;
+}
+
+/* 评论输入区域 */
+.comment-input-area {
+  margin-bottom: 16px;
+}
+
+.comment-textarea {
+  margin-bottom: 12px;
+  border-radius: 8px;
+}
+
+.comment-submit-area {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 评论列表样式 */
+.comments-list {
+  margin-top: 8px;
+}
+
+.comment-item {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-avatar {
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.comment-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.comment-author {
+  font-weight: 500;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.comment-time {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.comment-text {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4b5563;
+  word-break: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 0 4px;
+  height: 24px;
+  font-size: 12px;
+}
+
+/* 子评论样式 */
+.child-comments-area {
+  margin-top: 8px;
+  margin-left: 12px;
+  padding: 8px 0 0 12px;
+  border-left: 2px solid #e5e7eb;
+  background-color: #f9fafb;
+  border-radius: 0 8px 8px 0;
+}
+
+.child-comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.child-comment-item {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.child-comment-item:last-child {
+  border-bottom: none;
+}
+
+.child-comment-item .comment-avatar {
+  margin-right: 8px;
+}
+
+.child-comment-item .comment-author {
+  font-size: 13px;
+}
+
+.child-comment-item .comment-text {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.child-comment-item .action-btn {
+  font-size: 11px;
+  height: 22px;
+}
+
+/* 分页容器 */
+.pagination-container {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
 }
 
 /* 响应式设计 */

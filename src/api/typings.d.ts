@@ -61,6 +61,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponsePagePictureCommentVO_ = {
+    code?: number
+    data?: PagePictureCommentVO_
+    message?: string
+  }
+
   type BaseResponsePagePictureVO_ = {
     code?: number
     data?: PagePictureVO_
@@ -226,6 +232,14 @@ declare namespace API {
     total?: number
   }
 
+  type PagePictureCommentVO_ = {
+    current?: number
+    pages?: number
+    records?: PictureCommentVO[]
+    size?: number
+    total?: number
+  }
+
   type PagePictureVO_ = {
     current?: number
     pages?: number
@@ -303,6 +317,37 @@ declare namespace API {
     updateTime?: string
     url?: string
     userId?: number
+  }
+
+  type PictureCommentAddRequest = {
+    content?: string
+    parentId?: number
+    pictureId?: number
+  }
+
+  type PictureCommentQueryRequest = {
+    content?: string
+    createTime?: string
+    current?: number
+    id?: number
+    pageSize?: number
+    parentId?: number
+    pictureId?: number
+    sortField?: string
+    sortOrder?: string
+    userId?: number
+  }
+
+  type PictureCommentVO = {
+    content?: string
+    createTime?: string
+    id?: number
+    isSelf?: boolean
+    parentId?: number
+    pictureId?: number
+    userAvatar?: string
+    userId?: number
+    userName?: string
   }
 
   type PictureEditByBatchRequest = {
