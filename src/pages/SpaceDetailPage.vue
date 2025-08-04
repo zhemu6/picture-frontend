@@ -4,8 +4,11 @@
       <h2>{{ space.spaceName }}的私有空间</h2>
       <a-space size="middle">
         <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
-          + 创建图片</a-button
-        >
+          + 创建图片
+        </a-button>
+
+        <a-button :icon="h(EditOutlined)" @click="doBatchEdit"> 批量编辑</a-button>
+
       </a-space>
       <a-tooltip :title="`占用空间 ${formatSize(space.totalSize)} / ${formatSize(space.maxSize)}`">
         <a-progress
@@ -22,8 +25,14 @@
           :size="80"
         ></a-progress>
       </a-tooltip>
-
     </a-flex>
+    <!-- 搜索表单 -->
+    <picture-search-form :on-search="onSearch" />
+
+    <!-- 按颜色搜索 -->
+    <a-form-item label="按颜色搜索" style="margin-top: 16px">
+      <color-picker format="hex" @pureColorChange="onColorChange" :loading="loading" />
+    </a-form-item>
 
     <!-- 瀑布流图片展示区域 - 使用组件 -->
     <div class="waterfall-section">
@@ -44,21 +53,35 @@
     <div v-show="showBackTop" class="back-to-top" @click="scrollToTop" title="返回顶部">
       <div class="back-to-top-icon">↑</div>
     </div>
+
+    <BatchEditPictureModal
+      ref="batchEditPictureModalRef"
+      :spaceId="id"
+      :pictureList="dataList"
+      :onSuccess="onBatchEditPictureSuccess"
+    />
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { reactive, ref, onMounted, onUnmounted, nextTick, h } from 'vue'
 import { formatSize } from '@/utils'
 import {
   getPictureVoByIdUsingGet,
   listPictureTagCategoryUsingGet,
   listPictureVoByPageUsingPost,
+  searchPictureByColorUsingPost,
 } from '@/api/pictureController'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import PictureList from '@/components/PictureList.vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController'
+import PictureSearchForm from '@/components/PictureSearchForm.vue'
+import { ColorPicker } from 'vue3-colorpicker'
+import 'vue3-colorpicker/style.css'
+import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
 
 // 数据相关
 const loading = ref(false)
@@ -76,7 +99,7 @@ const props = defineProps<Props>()
 const waterfallDisplayRef = ref()
 const space = ref<API.SpaceVO>({})
 // 搜索条件
-const searchParams = reactive<API.PictureQueryRequest>({
+const searchParams = ref<API.PictureQueryRequest>({
   current: 1,
   pageSize: 20,
   sortField: 'createTime',
@@ -91,6 +114,45 @@ const selectTagList = ref<string[]>([])
 
 const router = useRouter()
 
+// 搜索函数
+const onSearch = (newSearchParams: API.PictureQueryRequest) => {
+  searchParams.value = {
+    ...searchParams.value,
+    ...newSearchParams,
+  }
+  searchParams.value.current = 1
+  hasMore.value = true
+  fetchData(false)
+}
+
+// 当颜色改变时触发的函数
+const onColorChange = async (color: string) => {
+  loading.value = true
+  const res = await searchPictureByColorUsingPost({
+    picColor: color,
+    spaceId: props.id,
+  })
+  if (res.data.code === 0 && res.data.data) {
+    const data = res.data.data ?? []
+    dataList.value = data
+    total.value = data.length
+  } else {
+    message.error('获取数据失败，' + res.data.message)
+  }
+  loading.value = false
+}
+
+
+const batchEditPictureModalRef = ref()
+const onBatchEditPictureSuccess =  () => {
+  fetchData()
+}
+const doBatchEdit = () => {
+  console.log("点击了弹窗" + batchEditPictureModalRef.value)
+  if(batchEditPictureModalRef.value){
+    batchEditPictureModalRef.value.openModal()
+  }
+}
 // 获取空间详情信息
 const fetchSpaceDetail = async () => {
   try {
@@ -115,7 +177,7 @@ const fetchData = async (isLoadMore = false) => {
   loading.value = true
   const params = {
     spaceId: props.id,
-    ...searchParams,
+    ...searchParams.value,
   }
   try {
     const res = await listPictureVoByPageUsingPost({ ...params })
@@ -142,8 +204,7 @@ const fetchData = async (isLoadMore = false) => {
 // 加载更多数据
 const loadMore = async () => {
   if (!hasMore.value || loading.value) return
-
-  searchParams.current = (searchParams.current || 1) + 1
+  searchParams.value.current = (searchParams.value.current || 1) + 1
   await fetchData(true)
 }
 
@@ -224,8 +285,6 @@ onUnmounted(() => {
   padding: 24px;
 }
 
-
-
 @keyframes heartBeat {
   0% {
     transform: scale(1);
@@ -261,7 +320,6 @@ onUnmounted(() => {
     transform: scale(1) rotate(0deg);
   }
 }
-
 
 /* 响应式设计 */
 @media (max-width: 768px) {

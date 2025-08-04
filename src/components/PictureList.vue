@@ -74,19 +74,16 @@
             </div>
             <!-- 图片操作 -->
             <div v-if="showOp" class="picture-actions">
-              <a-space @click.stop="doEdit(picture, $event)">
-                <EditOutlined />
-                编辑
-              </a-space>
-              <a-space @click.stop="doDelete(picture, $event)">
-                <DeleteOutlined />
-                删除
-              </a-space>
+              <EditOutlined @click.stop="doEdit(picture, $event)" />
+              <DeleteOutlined @click.stop="doDelete(picture, $event)" />
+              <ShareAltOutlined @click.stop="doShare(picture, $event)" />
             </div>
+
           </div>
         </div>
       </div>
     </div>
+    <ShareModal ref="shareModalRef" :link="shareLink" />
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
@@ -114,11 +111,12 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { EyeOutlined,EditOutlined,DeleteOutlined } from '@ant-design/icons-vue'
+import { EyeOutlined, EditOutlined, ShareAltOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import router from '@/router'
 import { deletePictureUsingPost } from '@/api/pictureController'
 import { message } from 'ant-design-vue'
 import * as path from 'node:path'
+import ShareModal from '@/components/ShareModal.vue'
 
 // 定义 Props
 interface Props {
@@ -127,7 +125,7 @@ interface Props {
   // 加载状态
   loading?: boolean
   // 是否展示操作
-  showOp?:boolean
+  showOp?: boolean
   // 是否还有更多数据
   hasMore?: boolean
   // 初始列宽
@@ -140,6 +138,7 @@ interface Props {
 interface Emits {
   // 点击图片事件
   (event: 'picture-click', picture: API.PictureVO): void
+
   // 图片加载完成事件
   (event: 'image-loaded'): void
 }
@@ -148,8 +147,8 @@ const props = withDefaults(defineProps<Props>(), {
   pictureList: () => [],
   loading: false,
   hasMore: true,
-  showOp:false,
-  initialColumnWidth: 280
+  showOp: false,
+  initialColumnWidth: 280,
 })
 
 const emit = defineEmits<Emits>()
@@ -172,20 +171,21 @@ const onImageLoad = async () => {
   emit('image-loaded')
 }
 
-
 // 编辑事件
-const doEdit = (picture:API.PictureVO,e:MouseEvent) => {
+const doEdit = (picture: API.PictureVO, e: MouseEvent) => {
   // 阻止冒泡 冒泡指的是父组件上也绑定了事件 防止这两个冲突
   e.stopPropagation()
   router.push({
-    path: "/add_picture",
-    query: { id: picture.id ,
-    spaceId: picture.spaceId}
+    path: '/add_picture',
+    query: {
+      id: picture.id,
+      spaceId: picture.spaceId,
+    },
   })
 }
 
 // 删除事件
-const doDelete = async (picture:API.PictureVO,e:MouseEvent) => {
+const doDelete = async (picture: API.PictureVO, e: MouseEvent) => {
   // 阻止冒泡 冒泡指的是父组件上也绑定了事件 防止这两个冲突
   e.stopPropagation()
   const id = picture.id
@@ -203,7 +203,6 @@ const doDelete = async (picture:API.PictureVO,e:MouseEvent) => {
     message.error('删除失败')
   }
 }
-
 
 // 图片加载错误
 const onImageError = (event: Event) => {
@@ -245,6 +244,17 @@ const redrawMasonry = async () => {
     ;(window as any).$redrawVueMasonry()
   }
 }
+// 分享操作 分享弹窗引用
+const shareModalRef = ref()
+const shareLink = ref<string>()
+// 分享函数
+const doShare = (picture: API.PictureVO, e: MouseEvent) => {
+  console.log('执行分享', picture)
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.id}`
+  if (shareModalRef.value) {
+    shareModalRef.value.openModal()
+  }
+}
 
 // 监听数据变化，重新布局
 watch(
@@ -252,13 +262,13 @@ watch(
   async () => {
     await redrawMasonry()
   },
-  { deep: true }
+  { deep: true },
 )
 
 // 暴露方法给父组件
 defineExpose({
   redrawMasonry,
-  updateColumnWidth
+  updateColumnWidth,
 })
 
 onMounted(() => {

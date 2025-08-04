@@ -19,6 +19,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListPictureVO_ = {
+    code?: number
+    data?: PictureVO[]
+    message?: string
+  }
+
   type BaseResponseListSpaceLevel_ = {
     code?: number
     data?: SpaceLevel[]
@@ -215,6 +221,7 @@ declare namespace API {
     iso?: number
     lensModel?: string
     name?: string
+    picColor?: string
     picFormat?: string
     picHeight?: number
     picScale?: number
@@ -231,6 +238,14 @@ declare namespace API {
     updateTime?: string
     url?: string
     userId?: number
+  }
+
+  type PictureEditByBatchRequest = {
+    category?: string
+    nameRule?: string
+    pictureIds?: number[]
+    spaceId?: number
+    tags?: string[]
   }
 
   type PictureEditRequest = {
@@ -253,6 +268,7 @@ declare namespace API {
     cameraModel?: string
     category?: string
     current?: number
+    endEditTime?: string
     exposureTime?: string
     fnumber?: number
     focalLength?: number
@@ -276,6 +292,7 @@ declare namespace API {
     sortField?: string
     sortOrder?: string
     spaceId?: number
+    startEditTime?: string
     tags?: string[]
     takenTime?: string
     userId?: number
@@ -334,6 +351,7 @@ declare namespace API {
     lensModel?: string
     likeCount?: number
     name?: string
+    picColor?: string
     picFormat?: string
     picHeight?: number
     picScale?: number
@@ -347,6 +365,11 @@ declare namespace API {
     url?: string
     user?: UserVO
     userId?: number
+  }
+
+  type SearchPictureByColorRequest = {
+    picColor?: string
+    spaceId?: number
   }
 
   type Space = {

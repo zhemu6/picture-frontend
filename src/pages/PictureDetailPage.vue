@@ -81,6 +81,22 @@
               <span class="info-label">文件大小</span>
               <span class="info-value size-value">{{ formatSize(picture.picSize) }}</span>
             </div>
+            <div class="info-row">
+              <span class="info-label">主色调</span>
+              <a-space>
+                {{ picture.picColor ?? '-' }}
+                <div
+                  v-if="picture.picColor"
+                  :style="{
+        backgroundColor: toHexColor(picture.picColor),
+        width: '16px',
+        height: '16px',
+      }"
+                />
+              </a-space>
+<!--              <span class="info-value size-value">{{ picture.picColor }}</span>-->
+            </div>
+
 
             <!-- <div class="info-row">
               <span class="info-label">宽高比</span>
@@ -190,9 +206,15 @@
                 <template #icon><DeleteOutlined /></template>
                 删除
               </a-button>
+              <a-button danger size="large" @click="doShare" class="delete-btn">
+                <template #icon><ShareAltOutlined /></template>
+                分享
+              </a-button>
             </div>
           </div>
         </a-card>
+
+        <ShareModal ref="shareModalRef" :link="shareLink" />
 
         <!-- 评论区占位 -->
         <a-card :bordered="false" class="info-block comment-card">
@@ -217,11 +239,12 @@ import { likePictureUsingPost } from '@/api/pictureLikeController'
 import { favoritePictureUsingPost } from '@/api/pictureFavoriteController'
 import { message } from 'ant-design-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { formatSize, downloadImage } from '@/utils'
+import { formatSize, downloadImage, toHexColor } from '@/utils'
 import dayjs from 'dayjs'
 import { useLoginUserStore } from '@/stores/userLoginUserStore'
-import { EditOutlined, DownloadOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, DownloadOutlined, ShareAltOutlined,DeleteOutlined, UserOutlined } from '@ant-design/icons-vue'
 import router from '@/router'
+import ShareModal from '@/components/ShareModal.vue'
 
 interface Props {
   id: string | number
@@ -246,6 +269,18 @@ const hasPhotoParams = computed(() => {
     picture.value.focalLength
   )
 })
+
+
+// 分享操作 分享弹窗引用
+const shareModalRef  = ref()
+const shareLink = ref<string>()
+// 分享函数
+const doShare = () => {
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
+  if(shareModalRef.value){
+    shareModalRef.value.openModal()
+  }
+}
 
 // 点赞功能
 const doLike = async () => {
