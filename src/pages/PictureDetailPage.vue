@@ -88,15 +88,14 @@
                 <div
                   v-if="picture.picColor"
                   :style="{
-        backgroundColor: toHexColor(picture.picColor),
-        width: '16px',
-        height: '16px',
-      }"
+                    backgroundColor: toHexColor(picture.picColor),
+                    width: '16px',
+                    height: '16px',
+                  }"
                 />
               </a-space>
-<!--              <span class="info-value size-value">{{ picture.picColor }}</span>-->
+              <!--              <span class="info-value size-value">{{ picture.picColor }}</span>-->
             </div>
-
 
             <!-- <div class="info-row">
               <span class="info-label">宽高比</span>
@@ -242,7 +241,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { formatSize, downloadImage, toHexColor } from '@/utils'
 import dayjs from 'dayjs'
 import { useLoginUserStore } from '@/stores/userLoginUserStore'
-import { EditOutlined, DownloadOutlined, ShareAltOutlined,DeleteOutlined, UserOutlined } from '@ant-design/icons-vue'
+import {
+  EditOutlined,
+  DownloadOutlined,
+  ShareAltOutlined,
+  DeleteOutlined,
+  UserOutlined,
+} from '@ant-design/icons-vue'
 import router from '@/router'
 import ShareModal from '@/components/ShareModal.vue'
 
@@ -270,14 +275,13 @@ const hasPhotoParams = computed(() => {
   )
 })
 
-
 // 分享操作 分享弹窗引用
-const shareModalRef  = ref()
+const shareModalRef = ref()
 const shareLink = ref<string>()
 // 分享函数
 const doShare = () => {
   shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
-  if(shareModalRef.value){
+  if (shareModalRef.value) {
     shareModalRef.value.openModal()
   }
 }
@@ -397,9 +401,8 @@ const canEdit = computed(() => {
 // 编辑事件
 const doEdit = () => {
   router.push({
-    path: "/add_picture",
-    query: { id: picture.value.id ,
-      spaceId: picture.value.spaceId}
+    path: '/add_picture',
+    query: { id: picture.value.id, spaceId: picture.value.spaceId },
   })
 }
 // 删除事件
@@ -424,7 +427,6 @@ const doDelete = async () => {
       // 如果没有 spaceId（公共删除），跳转到首页
       await router.push({ path: '/', force: true })
     }
-
   } else {
     message.error('删除失败')
   }
@@ -454,6 +456,16 @@ onMounted(() => {
   overflow: hidden;
   background: #ffffff;
   border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-card :deep(.ant-card-body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  max-height: 80vh; /* 限制最大高度为视口高度的80% */
 }
 
 .preview-title {
@@ -477,16 +489,31 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  /* 设置容器的固定高度，您可以根据需求调整 */
+  height: 600px; /* 或者使用 min-height: 400px; max-height: 600px; */
+  width: 100%;
 }
 
 .main-image {
   max-width: 100%;
-  max-height: 700px;
-  object-fit: contain;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* 保持宽高比，完整显示图片 */
   transition: transform 0.3s ease;
+  display: block;
 }
 
+.main-image.small-image {
+  /* 对于小图片，让它填满容器 */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.main-image.large-image {
+  /* 对于大图片，保持比例并居中 */
+  object-fit: contain;
+}
 .main-image:hover {
   transform: scale(1.02);
 }
@@ -932,21 +959,16 @@ onMounted(() => {
 }
 
 /* 响应式设计 */
+/* 响应式调整 */
 @media (max-width: 768px) {
-  #pictureDetailPage {
-    padding: 16px;
+  .image-container {
+    height: 400px; /* 移动端使用较小的高度 */
   }
+}
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .params-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-actions {
-    grid-template-columns: 1fr;
+@media (max-width: 480px) {
+  .image-container {
+    height: 300px; /* 更小屏幕使用更小的高度 */
   }
 }
 </style>

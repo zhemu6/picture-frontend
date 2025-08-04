@@ -2,18 +2,17 @@
   <div id="addPicturePage">
     <h2 style="margin-bottom: 16px">{{ route.query?.id ? '修改图片' : '创建图片' }}</h2>
     <a-typography-paragraph v-if="spaceId" type="secondary">
-      保存至空间:<a :href="`/space/${spaceId}`" target="_blank">{{spaceId}}</a>
+      保存至空间:<a :href="`/space/${spaceId}`" target="_blank">{{ spaceId }}</a>
     </a-typography-paragraph>
-
 
     <!--图片上传组件-->
     选择上传方式
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
-        <PictureUpload :picture="picture" :spaceId = "spaceId" :onSuccess="onSuccess" />
+        <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
       <a-tab-pane key="url" tab="Url上传" force-render>
-        <UrlPictureUpload :picture="picture" :spaceId = "spaceId"  :onSuccess="onSuccess" />
+        <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
 
@@ -59,13 +58,32 @@
           >{{ route.query?.id ? '修改' : '创建' }}
         </a-button>
       </a-form-item>
-
     </a-form>
+
+    <!--编辑图片按钮 包括 1.旋转 裁剪等常规操作 和2.AI拓图 -->
+    <div v-if="picture" class="edit-bar">
+      <a-button :icon="h(EditOutlined)" @click="doEditPicture"> 编辑图片</a-button>
+      <a-button :icon="h(EditOutlined)" @click="doOutpaintingPicture"> AI拓图</a-button>
+
+      <ImageCrop
+        ref="imageCropperRef"
+        :imageUrl="picture?.url"
+        :picture="picture"
+        :spaceId="spaceId"
+        :onSuccess="onCropSuccess"
+      />
+      <ImageOutPainting
+        ref="imageOutpaintingRef"
+        :spaceId="spaceId"
+        :onSuccess="onOutPaintingSuccess"
+        :picture="picture"
+      />
+    </div>
   </div>
 </template>
 <script lang="ts" setup>
 import PictureUpload from '@/components/PictureUpload.vue'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import {
   editPictureUsingPost,
   getPictureVoByIdUsingGet,
@@ -74,6 +92,9 @@ import {
 import { message } from 'ant-design-vue'
 import { useRoute, useRouter } from 'vue-router'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
+import ImageCrop from '@/components/ImageCrop.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
+import ImageOutPainting from '@/components/ImageOutPainting.vue'
 
 const router = useRouter()
 
@@ -118,6 +139,7 @@ const handleSubmit = async (values: any) => {
   }
 }
 
+// 获取分类和标签
 const categoryOptions = ref<string[]>([])
 const tagOptions = ref<string[]>([])
 
@@ -175,10 +197,41 @@ const getOldPictureInfo = async () => {
     }
   }
 }
+
+// 图片编辑弹窗引用
+const imageCropperRef = ref()
+const imageOutpaintingRef = ref()
+
+// 编辑图片
+const doEditPicture = () => {
+  if (imageCropperRef.value) {
+    imageCropperRef.value.openModal()
+  }
+}
+
+const doOutpaintingPicture = () => {
+  if (imageOutpaintingRef.value) {
+    imageOutpaintingRef.value.openModal()
+  }
+}
+
+const onOutPaintingSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
+
+// 编辑成功事件
+const onCropSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 </script>
 <style scoped>
 #addPicturePage {
   max-width: 720px;
   margin: 0 auto;
+}
+
+#addPicturePage .edit-bar {
+  text-align: center;
+  margin: 16px 0;
 }
 </style>

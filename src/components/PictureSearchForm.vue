@@ -1,7 +1,8 @@
 <template>
   <div id="picture-search-form">
     <!--  搜索表单  -->
-    {{searchParams}}
+    <!-- 用于调试 -->
+    <!--    {{searchParams}}-->
     <a-form style="margin-bottom: 16px" layout="inline" :model="searchParams" @finish="doSearch">
       <a-form-item label="关键词">
         <a-input

@@ -18,7 +18,7 @@
         />
       </a-form-item>
       <a-form-item label="类型">
-        <a-input v-model:value="searchParams.category"  placeholder="请输入类型" allow-clear />
+        <a-input v-model:value="searchParams.category" placeholder="请输入类型" allow-clear />
       </a-form-item>
       <a-form-item label="标签" name="tags">
         <a-select
@@ -50,6 +50,7 @@
       :pagination="pagination"
       :scroll="{ x: 1400 }"
       @change="doTableChange"
+      :row-key="(record) => record.id"
     >
       <template #bodyCell="{ column, record }">
         <!--图片展示-->
@@ -160,6 +161,7 @@ const columns = [
     dataIndex: 'id',
     width: 80,
     fixed: 'left', // 固定在左侧
+    sorter: true,
   },
   {
     title: '图片',
@@ -172,6 +174,7 @@ const columns = [
     dataIndex: 'name',
     width: 150,
     ellipsis: true,
+    sorter: true,
   },
   {
     title: '简介',
@@ -184,6 +187,7 @@ const columns = [
     dataIndex: 'category',
     width: 100,
     align: 'center',
+    sorter: true,
   },
   {
     title: '标签',
@@ -200,6 +204,7 @@ const columns = [
     dataIndex: 'userId',
     width: 80,
     align: 'center',
+    sorter: true,
   },
   {
     title: '审核信息',
@@ -211,12 +216,15 @@ const columns = [
     dataIndex: 'createTime',
     width: 160,
     align: 'center',
+    sorter: true,
+    defaultSortOrder: 'descend',
   },
   {
     title: '编辑时间',
     dataIndex: 'editTime',
     width: 160,
     align: 'center',
+    sorter: true,
   },
   {
     title: '操作',
@@ -240,7 +248,7 @@ const searchParams = reactive<API.PictureQueryRequest>({
 const fetchData = async () => {
   const res = await listPictureByPageUsingPost({
     ...searchParams,
-    nullSpaceId: true
+    nullSpaceId: true,
   })
   if (res.data.code === 0 && res.data.data) {
     dataList.value = res.data.data.records ?? []
@@ -256,9 +264,17 @@ const doSearch = () => {
   fetchData()
 }
 
-const doTableChange = (page: any) => {
-  searchParams.current = page.current
-  searchParams.pageSize = page.pageSize
+const doTableChange = (pagination: any, filters: any, sorter: any) => {
+  // 处理分页
+  searchParams.current = pagination.current
+  searchParams.pageSize = pagination.pageSize
+
+  // 处理排序
+  if (sorter && sorter.field) {
+    searchParams.sortField = sorter.field
+    searchParams.sortOrder = sorter.order === 'ascend' ? 'ascend' : 'descend'
+  }
+
   fetchData()
 }
 
