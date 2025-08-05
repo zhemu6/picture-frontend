@@ -8,6 +8,7 @@ import * as pictureCommentController from './pictureCommentController'
 import * as pictureFavoriteController from './pictureFavoriteController'
 import * as pictureLikeController from './pictureLikeController'
 import * as spaceController from './spaceController'
+import * as spaceAnalyzeController from './spaceAnalyzeController'
 import * as userController from './userController'
 export default {
   fileController,
@@ -16,5 +17,6 @@ export default {
   pictureFavoriteController,
   pictureLikeController,
   spaceController,
+  spaceAnalyzeController,
   userController,
 }

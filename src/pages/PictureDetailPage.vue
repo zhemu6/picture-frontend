@@ -548,7 +548,7 @@ const fetchPictureDetail = async () => {
     const res = await getPictureVoByIdUsingGet({
       id: props.id,
     })
-    console.log(res)
+    // console.log(res)
     if (res.data.code === 0 && res.data.data) {
       picture.value = res.data.data
     } else {
@@ -650,7 +650,7 @@ const submitComment = async () => {
       }
 
     }
-    console.log("父评论id"+parentId)
+    // console.log("父评论id"+parentId)
     const res = await addPictureCommentUsingPost({
       pictureId: picture.value.id,
       parentId: parentId,
@@ -684,8 +684,9 @@ const fetchComments = async () => {
   if (!props.id) return
   try {
     commentsLoading.value = true
+    // console.log( props.id)
     const res = await listPictureCommentVoByPageUsingPost({
-      pictureId: picture.value.id,
+      pictureId: props.id,
       current: current.value,
       pageSize: pageSize.value,
       parentId: 0,
@@ -791,15 +792,6 @@ const deleteComment = async (commentId: number | undefined,parentId:number|undef
   }
 }
 
-// 判断是否可以删除评论
-const canDeleteComment = (comment: API.PictureCommentVO) => {
-  const loginUser = loginUserStore.loginUser
-  if (!loginUser.id) return false
-
-  // 自己的评论或管理员可以删除
-  return loginUser.id === comment.userId || loginUser.userRole === 'admin'
-}
-
 // 分页变化
 const handlePageChange = (page: number) => {
   current.value = page
@@ -814,8 +806,10 @@ const handleSizeChange = (current: number, size: number) => {
 
 onMounted(() => {
   fetchPictureDetail()
+  // 获取所有的一级评论
   fetchComments()
 })
+
 </script>
 
 <style scoped>

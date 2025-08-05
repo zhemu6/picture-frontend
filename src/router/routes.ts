@@ -136,6 +136,16 @@ const routes = [
   },
 
   {
+    path: '/space_analyze',
+    name: '空间分析',
+    component: () => import('@/pages/SpaceAnalyzePage.vue'),
+    meta: {
+      hideInMenu: true,
+      access: ACCESS_CONSTANTS.USER,
+    },
+  },
+
+  {
     path: '/noAuth',
     name: '无权限页面',
     // 懒加载
