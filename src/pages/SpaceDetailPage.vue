@@ -1,13 +1,14 @@
 <template>
   <div id="spaceDetailPage">
     <a-flex>
-      <h2>{{ space.spaceName }}的私有空间</h2>
+      <h2>{{ space.spaceName }}的{{SPACE_TYPE_MAP[space.spaceType]}}</h2>
       <a-space size="middle">
-        <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
+        <a-button v-if="canUploadPicture" type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank">
           + 创建图片
         </a-button>
-        <a-button :icon="h(EditOutlined)" :href="`/space_analyze?spaceId=${id}`" target="_blank"> 空间分析</a-button>
-        <a-button :icon="h(EditOutlined)" @click="doBatchEdit"> 批量编辑</a-button>
+        <a-button :icon="h(EditOutlined)" v-if="canManageSpaceUser" :href="`/spaceUserManage/${id}`" target="_blank"> 团队成员管理</a-button>
+        <a-button :icon="h(EditOutlined)" v-if="canManageSpaceUser" :href="`/space_analyze?spaceId=${id}`" target="_blank"> 空间分析</a-button>
+        <a-button :icon="h(EditOutlined)" v-if="canEditPicture" @click="doBatchEdit"> 批量编辑</a-button>
 
       </a-space>
       <a-tooltip :title="`占用空间 ${formatSize(space.totalSize)} / ${formatSize(space.maxSize)}`">
@@ -45,6 +46,8 @@
         @picture-click="doClickPicture"
         @image-loaded="onImageLoaded"
         :show-op="true"
+        :canEdit = "canEditPicture"
+        :canDelete = "canDeletePicture"
         :on-reload="fetchData"
       />
     </div>
@@ -65,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted, nextTick, h } from 'vue'
+import { reactive, ref, onMounted, onUnmounted, nextTick, h, watchEffect, watch, computed } from 'vue'
 import { formatSize } from '@/utils'
 import {
   getPictureVoByIdUsingGet,
@@ -82,6 +85,7 @@ import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
 import { EditOutlined } from '@ant-design/icons-vue'
+import { SPACE_PERMISSION_ENUM, SPACE_TYPE_MAP } from '../constants/space'
 
 // 数据相关
 const loading = ref(false)
@@ -95,6 +99,23 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// 定义权限检查
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (space.value.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canManageSpaceUser = createPermissionChecker(SPACE_PERMISSION_ENUM.SPACE_USER_MANAGE)
+const canUploadPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_UPLOAD)
+const canEditPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
+
+
+
 // 组件引用
 const waterfallDisplayRef = ref()
 const space = ref<API.SpaceVO>({})
@@ -272,6 +293,14 @@ onMounted(() => {
   fetchSpaceDetail()
   getCategoryAndTagOptions()
 })
+
+// 空间id 改变时 必须重新获取数据
+watch(()=>props.id,()=>{
+  fetchData()
+  fetchSpaceDetail()
+})
+
+
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)

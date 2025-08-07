@@ -3,20 +3,20 @@
     <a-flex justify="space-between">
       <h2>空间管理</h2>
       <a-space>
-        <a-button type="primary" href="/add_space" target="_blank"> 创建空间 </a-button>
-        <a-button type="primary" :href="`/space_analyze?queryPublic=1`" target="_blank"> 分析公共图库 </a-button>
-        <a-button type="primary" :href="`/space_analyze?queryAll=1`" target="_blank"> 分析全部空间</a-button>
+        <a-button type="primary" href="/add_space" target="_blank"> 创建空间</a-button>
+        <a-button type="primary" :href="`/space_analyze?queryPublic=1`" target="_blank">
+          分析公共图库</a-button
+        >
+        <a-button type="primary" :href="`/space_analyze?queryAll=1`" target="_blank">
+          分析全部空间</a-button
+        >
       </a-space>
     </a-flex>
     <div style="margin-bottom: 16px" />
     <!--  搜索表单  -->
     <a-form style="margin-bottom: 16px" layout="inline" :model="searchParams" @finish="doSearch">
       <a-form-item label="空间名称">
-        <a-input
-          v-model:value="searchParams.spaceName"
-          placeholder="请输入空间名称"
-          allow-clear
-        />
+        <a-input v-model:value="searchParams.spaceName" placeholder="请输入空间名称" allow-clear />
       </a-form-item>
 
       <a-form-item name="spaceLevel" label="空间级别">
@@ -25,6 +25,16 @@
           v-model:value="searchParams.spaceLevel"
           :options="SPACE_LEVEL_OPTIONS"
           placeholder="请选择空间级别"
+          allow-clear
+        />
+      </a-form-item>
+
+      <a-form-item name="spaceLevel" label="空间类别">
+        <a-select
+          style="min-width: 180px"
+          v-model:value="searchParams.spaceType"
+          :options="SPACE_TYPE_OPTIONS"
+          placeholder="请选择空间类别"
           allow-clear
         />
       </a-form-item>
@@ -45,15 +55,14 @@
       @change="doTableChange"
     >
       <template #bodyCell="{ column, record }">
-
         <!--空间级别展示-->
         <template v-if="column.dataIndex === 'spaceLevel'">
           <div>空间级别：{{ SPACE_LEVEL_MAP[record.spaceLevel] }}</div>
         </template>
         <!--空间的使用情况-->
         <template v-if="column.dataIndex === 'spaceUseInfo'">
-          <div>大小：{{formatSize(record.totalSize)}}/{{formatSize(record.maxSize) }}</div>
-          <div>数量：{{record.totalCount}}/{{ record.maxCount }}</div>
+          <div>大小：{{ formatSize(record.totalSize) }}/{{ formatSize(record.maxSize) }}</div>
+          <div>数量：{{ record.totalCount }}/{{ record.maxCount }}</div>
         </template>
 
         <!--标签展示-->
@@ -62,7 +71,6 @@
             <a-tag v-for="tag in JSON.parse(record.tags || '[]')" :key="tag">{{ tag }}</a-tag>
           </a-space>
         </template>
-
 
         <template v-else-if="column.dataIndex === 'spaceRole'">
           <div v-if="record.spaceRole === 'admin'">
@@ -73,7 +81,9 @@
           </div>
         </template>
 
-
+        <template v-else-if="column.dataIndex === 'spaceType'">
+          {{ SPACE_TYPE_MAP[record.spaceType] }}
+        </template>
 
         <template v-else-if="column.dataIndex === 'createTime'">
           {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
@@ -100,8 +110,6 @@
             <a-button type="link" :href="`/space_analyze?spaceId=${record.id}`" target="_blank">
               分析
             </a-button>
-
-
           </a-space>
         </template>
       </template>
@@ -110,16 +118,12 @@
 </template>
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import {
-  deleteSpaceUsingPost,
-  listSpaceByPageUsingPost,
-} from '@/api/spaceController'
+import { deleteSpaceUsingPost, listSpaceByPageUsingPost } from '@/api/spaceController'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { formatSize } from '@/utils'
 
-import { SPACE_LEVEL_MAP, SPACE_LEVEL_OPTIONS } from '@/constants/space'
-
+import { SPACE_LEVEL_MAP, SPACE_LEVEL_OPTIONS, SPACE_TYPE_MAP, SPACE_TYPE_OPTIONS } from '@/constants/space'
 
 // 定义表格显示哪些列
 const columns = [
@@ -135,6 +139,10 @@ const columns = [
   {
     title: '空间级别',
     dataIndex: 'spaceLevel',
+  },
+  {
+    title: '空间类别',
+    dataIndex: 'spaceType',
   },
   {
     title: '使用情况',
@@ -158,7 +166,6 @@ const columns = [
     key: 'action',
   },
 ]
-
 
 const dataList = ref<API.SpaceVO[]>([])
 const total = ref(0)

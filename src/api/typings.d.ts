@@ -13,9 +13,15 @@ declare namespace API {
     message?: string
   }
 
-  type BaseResponseCreateOutPaintingTaskResponse_ = {
+  type BaseResponseCreateTaskResponse_ = {
     code?: number
-    data?: CreateOutPaintingTaskResponse
+    data?: CreateTaskResponse
+    message?: string
+  }
+
+  type BaseResponseGetCommonSynthesisTaskResponse_ = {
+    code?: number
+    data?: GetCommonSynthesisTaskResponse
     message?: string
   }
 
@@ -70,6 +76,12 @@ declare namespace API {
   type BaseResponseListSpaceUserAnalyzeResponse_ = {
     code?: number
     data?: SpaceUserAnalyzeResponse[]
+    message?: string
+  }
+
+  type BaseResponseListSpaceUserVO_ = {
+    code?: number
+    data?: SpaceUserVO[]
     message?: string
   }
 
@@ -151,6 +163,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseSpaceUser_ = {
+    code?: number
+    data?: SpaceUser
+    message?: string
+  }
+
   type BaseResponseSpaceVO_ = {
     code?: number
     data?: SpaceVO
@@ -175,11 +193,9 @@ declare namespace API {
     message?: string
   }
 
-  type CreateOutPaintingTaskResponse = {
-    code?: string
-    message?: string
-    output?: Output
-    requestId?: string
+  type CreatePictureCommonSynthesisTaskRequest = {
+    pictureId?: number
+    prompt?: string
   }
 
   type CreatePictureOutPaintingTaskRequest = {
@@ -187,23 +203,40 @@ declare namespace API {
     pictureId?: number
   }
 
+  type CreateTaskResponse = {
+    code?: string
+    message?: string
+    output?: Output
+    requestId?: string
+  }
+
   type DeleteRequest = {
     id?: number
   }
 
-  type GetOutPaintingTaskResponse = {
+  type getCommonSynthesisPictureTaskUsingGETParams = {
+    /** taskId */
+    taskId?: string
+  }
+
+  type GetCommonSynthesisTaskResponse = {
     output?: Output1
+    request_id?: string
+  }
+
+  type getOutPaintingPictureTaskUsingGETParams = {
+    /** taskId */
+    taskId?: string
+  }
+
+  type GetOutPaintingTaskResponse = {
+    output?: Output2
     requestId?: string
   }
 
   type getPictureByIdUsingGETParams = {
     /** id */
     id?: number
-  }
-
-  type getPictureOutPaintingTaskUsingGETParams = {
-    /** taskId */
-    taskId?: string
   }
 
   type getPictureVOByIdUsingGETParams = {
@@ -253,10 +286,23 @@ declare namespace API {
     endTime?: string
     message?: string
     outputImageUrl?: string
+    results?: Result[]
     scheduledTime?: string
     submitTime?: string
     taskId?: string
     taskMetrics?: TaskMetrics
+    taskStatus?: string
+  }
+
+  type Output2 = {
+    code?: string
+    endTime?: string
+    message?: string
+    outputImageUrl?: string
+    scheduledTime?: string
+    submitTime?: string
+    taskId?: string
+    taskMetrics?: TaskMetrics1
     taskStatus?: string
   }
 
@@ -497,6 +543,7 @@ declare namespace API {
     lensModel?: string
     likeCount?: number
     name?: string
+    permissionList?: string[]
     picColor?: string
     picFormat?: string
     picHeight?: number
@@ -513,6 +560,10 @@ declare namespace API {
     userId?: number
   }
 
+  type Result = {
+    url?: string
+  }
+
   type SearchPictureByColorRequest = {
     picColor?: string
     spaceId?: number
@@ -527,6 +578,7 @@ declare namespace API {
     maxSize?: number
     spaceLevel?: number
     spaceName?: string
+    spaceType?: number
     totalCount?: number
     totalSize?: number
     updateTime?: string
@@ -537,6 +589,7 @@ declare namespace API {
     id?: number
     spaceLevel?: number
     spaceName?: string
+    spaceType?: number
   }
 
   type SpaceCategoryAnalyzeRequest = {
@@ -571,6 +624,7 @@ declare namespace API {
     sortOrder?: string
     spaceLevel?: number
     spaceName?: string
+    spaceType?: number
     userId?: number
   }
 
@@ -623,6 +677,21 @@ declare namespace API {
     usedSize?: number
   }
 
+  type SpaceUser = {
+    createTime?: string
+    id?: number
+    spaceId?: number
+    spaceRole?: string
+    updateTime?: string
+    userId?: number
+  }
+
+  type SpaceUserAddRequest = {
+    spaceId?: number
+    spaceRole?: string
+    userId?: number
+  }
+
   type SpaceUserAnalyzeRequest = {
     queryAll?: boolean
     queryPublic?: boolean
@@ -636,14 +705,39 @@ declare namespace API {
     period?: string
   }
 
+  type SpaceUserEditRequest = {
+    id?: number
+    spaceRole?: string
+  }
+
+  type SpaceUserQueryRequest = {
+    id?: number
+    spaceId?: number
+    spaceRole?: string
+    userId?: number
+  }
+
+  type SpaceUserVO = {
+    createTime?: string
+    id?: number
+    space?: SpaceVO
+    spaceId?: number
+    spaceRole?: string
+    updateTime?: string
+    user?: UserVO
+    userId?: number
+  }
+
   type SpaceVO = {
     createTime?: string
     editTime?: string
     id?: number
     maxCount?: number
     maxSize?: number
+    permissionList?: string[]
     spaceLevel?: number
     spaceName?: string
+    spaceType?: number
     totalCount?: number
     totalSize?: number
     updateTime?: string
@@ -652,6 +746,12 @@ declare namespace API {
   }
 
   type TaskMetrics = {
+    failed?: number
+    succeeded?: number
+    total?: number
+  }
+
+  type TaskMetrics1 = {
     failed?: number
     succeeded?: number
     total?: number

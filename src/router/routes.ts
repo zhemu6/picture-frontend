@@ -15,7 +15,6 @@ const routes = [
     path: '/',
     name: '主页',
     component: () => import('@/pages/HomePage.vue'),
-
     meta: {
       icon: () => h(HomeOutlined),
     },
@@ -93,6 +92,7 @@ const routes = [
     component: () => import('@/pages/PictureDetailPage.vue'),
     meta: {
       hideInMenu: true,
+      access: ACCESS_CONSTANTS.NOT_LOGIN
     },
   },
 
@@ -100,6 +100,16 @@ const routes = [
     path: '/admin/spaceManage',
     name: '空间管理',
     component: () => import('@/pages/admin/SpaceManagePage.vue'),
+    meta: {
+      access: ACCESS_CONSTANTS.ADMIN,
+    },
+  },
+
+  {
+    path: '/spaceUserManage/:id',
+    name: '空间成员管理',
+    props: true,
+    component: () => import('@/pages/admin/SpaceUserManagePage.vue'),
     meta: {
       access: ACCESS_CONSTANTS.ADMIN,
     },

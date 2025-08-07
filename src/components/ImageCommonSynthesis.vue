@@ -1,8 +1,8 @@
 <template>
   <a-modal
-    class="image-out-painting"
+    class="image-common-synthesis"
     v-model:visible="visible"
-    title="AI拓图"
+    title="AI 图片风格化"
     :footer="false"
     @cancel="closeModal"
   >
@@ -21,9 +21,16 @@
         />
       </a-col>
     </a-row>
+    <a-form layout="vertical" style="margin-top: 16px">
+      <a-form-item label="风格提示词 Prompt">
+        <a-input v-model:value="promptInput" placeholder="如：转换成法国绘本风格(金箔艺术、赛博朋克城市、油画风格、未来科幻)" />
+      </a-form-item>
+    </a-form>
     <a-flex justify="center" gap="16">
       <a-button @click="createTask" :loading="!!taskId" type="primary" ghost> 生成图片 </a-button>
-      <a-button v-if="resultImageUrl" @click="handleUpload" :loading="upLoading" type="primary"> 应用图片 </a-button>
+      <a-button v-if="resultImageUrl" @click="handleUpload" :loading="upLoading" type="primary">
+        应用图片
+      </a-button>
     </a-flex>
   </a-modal>
 </template>
@@ -32,8 +39,9 @@
 import { onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
+  createPictureCommonSynthesisTaskUsingPost,
   createPictureOutPaintingTaskUsingPost,
-  getAilPictureTaskUsingGet, getOutPaintingPictureTaskUsingGet,
+  getAilPictureTaskUsingGet, getCommonSynthesisPictureTaskUsingGet,
   uploadPictureByUrlUsingPost,
   uploadPictureUsingPost
 } from '@/api/pictureController'
@@ -53,6 +61,7 @@ const cropperRef = ref()
 
 const resultImageUrl = ref<string>('')
 
+const promptInput = ref<string>('');
 /**
  * 创建任务
  */
@@ -60,15 +69,15 @@ const createTask = async () => {
   if (!props.picture.id) {
     return
   }
+  if(!promptInput.value){
+    message.error('请输入风格提示词')
+    return
+  }
   loading.value = true
   try {
-    const res = await createPictureOutPaintingTaskUsingPost({
+    const res = await createPictureCommonSynthesisTaskUsingPost({
       pictureId: props.picture.id,
-      //根据需要设置作图参数
-      parameters: {
-        xScale: 2,
-        yScale: 2,
-      },
+      prompt: promptInput.value,
     })
     if (res.data.code === 0 && res.data.data) {
       message.success('创建任务成功，请耐心等待，不要退出界面')
@@ -94,17 +103,17 @@ const startPolling = () => {
 
   pollingTimer = setInterval(async () => {
     try {
-      const res = await getOutPaintingPictureTaskUsingGet({
+      const res = await getCommonSynthesisPictureTaskUsingGet({
         taskId: taskId.value,
       })
       if (res.data.code === 0 && res.data.data) {
         const taskResult = res.data.data.output
         if (taskResult.taskStatus === 'SUCCEEDED') {
-          message.success('扩图任务成功')
+          message.success('全局风格化任务成功')
           resultImageUrl.value = taskResult.outputImageUrl
           clearPolling()
         } else if (taskResult.taskStatus === 'FAILED') {
-          message.error('扩图任务失败')
+          message.error('全局风格化任务失败')
           clearPolling()
         }
       }
@@ -181,11 +190,11 @@ defineExpose({
 </script>
 
 <style scoped>
-.image-out-painting {
+.image-common-synthesis {
   text-align: center;
 }
 
-.image-out-painting .vue-cropper {
+.image-common-synthesis .vue-cropper {
   height: 400px;
 }
 </style>

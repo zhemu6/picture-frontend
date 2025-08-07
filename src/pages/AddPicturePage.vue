@@ -59,12 +59,13 @@
         </a-button>
       </a-form-item>
     </a-form>
-
-    <!--编辑图片按钮 包括 1.旋转 裁剪等常规操作 和2.AI拓图 -->
+    <!--编辑图片按钮 包括 1.旋转 裁剪等常规操作、2.AI拓图、3.AI风格化  -->
     <div v-if="picture" class="edit-bar">
       <a-button :icon="h(EditOutlined)" @click="doEditPicture"> 编辑图片</a-button>
       <a-button :icon="h(EditOutlined)" @click="doOutpaintingPicture"> AI拓图</a-button>
-
+      <a-button :icon="h(EditOutlined)" @click="doCommonSynthesisPicture"> AI风格化</a-button>
+      <!-- 图片裁剪 -->
+      {{ picture?.url }}
       <ImageCrop
         ref="imageCropperRef"
         :imageUrl="picture?.url"
@@ -72,10 +73,18 @@
         :spaceId="spaceId"
         :onSuccess="onCropSuccess"
       />
+      <!-- AI 拓图 -->
       <ImageOutPainting
         ref="imageOutpaintingRef"
         :spaceId="spaceId"
         :onSuccess="onOutPaintingSuccess"
+        :picture="picture"
+      />
+      <!-- AI 风格化 -->
+      <ImageCommonSynthesis
+        ref="imageCommonSynthesisRef"
+        :spaceId="spaceId"
+        :onSuccess="onCommonSynthesisSuccess"
         :picture="picture"
       />
     </div>
@@ -95,7 +104,8 @@ import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
 import ImageCrop from '@/components/ImageCrop.vue'
 import { EditOutlined } from '@ant-design/icons-vue'
 import ImageOutPainting from '@/components/ImageOutPainting.vue'
-
+import ImageCommonSynthesis from '@/components/ImageCommonSynthesis.vue'
+const testImageUrl = 'https://www.codefather.cn/logo.png'
 const router = useRouter()
 
 const uploadType = ref<'file' | 'url'>('file')
@@ -105,6 +115,7 @@ const spaceId = computed(() => {
 })
 
 const picture = ref<API.PictureVO>()
+
 const onSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
   pictureForm.name = newPicture.name
@@ -139,10 +150,10 @@ const handleSubmit = async (values: any) => {
   }
 }
 
-// 获取分类和标签
+// 分类和标签
 const categoryOptions = ref<string[]>([])
 const tagOptions = ref<string[]>([])
-
+// 获取分类和标签
 const getCategoryAndTagOptions = async () => {
   try {
     const res = await listPictureTagCategoryUsingGet()
@@ -176,9 +187,8 @@ const route = useRoute()
 
 // 获取旧的图片的信息
 const getOldPictureInfo = async () => {
-  // 获取到id
-  // const id = Number(route.query?.id)
-  const id = route.query?.id as string // ✅ 保留为 string
+  // 获取到id  string
+  const id = route.query?.id as string
 
   console.log(id)
   if (id) {
@@ -201,7 +211,7 @@ const getOldPictureInfo = async () => {
 // 图片编辑弹窗引用
 const imageCropperRef = ref()
 const imageOutpaintingRef = ref()
-
+const imageCommonSynthesisRef = ref()
 // 编辑图片
 const doEditPicture = () => {
   if (imageCropperRef.value) {
@@ -215,10 +225,18 @@ const doOutpaintingPicture = () => {
   }
 }
 
+const doCommonSynthesisPicture = () => {
+  if (imageCommonSynthesisRef.value) {
+    imageCommonSynthesisRef.value.openModal()
+  }
+}
+
 const onOutPaintingSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }
-
+const onCommonSynthesisSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 // 编辑成功事件
 const onCropSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture

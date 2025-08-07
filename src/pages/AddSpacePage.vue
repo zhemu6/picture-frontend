@@ -1,6 +1,6 @@
 <template>
   <div id="addSpacePage">
-    <h2 style="margin-bottom: 16px">{{ route.query?.id ? '修改空间' : '创建空间' }}</h2>
+    <h2 style="margin-bottom: 16px">{{ route.query?.id ? '修改空间' : '创建空间' }}-{{SPACE_TYPE_MAP[spaceType]}}</h2>
 
     <!--空间信息表单-->
     <a-form name="spaceForm" layout="vertical" :model="spaceForm" @finish="handleSubmit">
@@ -50,10 +50,12 @@ import {
 } from '@/api/spaceController'
 import { message } from 'ant-design-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { SPACE_LEVEL_OPTIONS } from '@/constants/space'
+import { SPACE_LEVEL_OPTIONS, SPACE_TYPE_ENUM, SPACE_TYPE_MAP } from '@/constants/space'
 
 const loading = ref(false)
 const router = useRouter()
+
+
 
 
 const uploadType = ref<'file' | 'url'>('file')
@@ -79,11 +81,15 @@ const handleSubmit = async (values: any) => {
   try {
     // 如果spaceId存在 那么就是更新接口
     if (spaceId) {
-      res = await updateSpaceUsingPost({ id: spaceId, ...spaceForm })
+      res = await updateSpaceUsingPost({
+        id: spaceId,
+        ...spaceForm
+      })
     } else {
       // 创建
       res = await addSpaceUsingPost({
         ...spaceForm,
+        spaceType: spaceType.value
       })
     }
 
@@ -119,6 +125,16 @@ onMounted(() => {
 })
 
 const route = useRoute()
+// 从路径地址中获取是创建私有空间还是团队空间
+const spaceType = computed(()=>{
+  // 如果路径中有type字段 就是创建实际type空间
+  if(route.query?.type){
+    return Number(route.query.type)
+  }else{
+    // 否则就默认是创建私有空间
+    return SPACE_TYPE_ENUM.PRIVATE
+  }
+})
 
 // 获取旧的空间的信息
 const getOldSpaceInfo = async () => {

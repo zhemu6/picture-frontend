@@ -74,11 +74,10 @@
             </div>
             <!-- 图片操作 -->
             <div v-if="showOp" class="picture-actions">
-              <EditOutlined @click.stop="doEdit(picture, $event)" />
-              <DeleteOutlined @click.stop="doDelete(picture, $event)" />
+              <EditOutlined v-if="canEdit" @click.stop="doEdit(picture, $event)" />
+              <DeleteOutlined v-if="canDelete" @click.stop="doDelete(picture, $event)" />
               <ShareAltOutlined @click.stop="doShare(picture, $event)" />
             </div>
-
           </div>
         </div>
       </div>
@@ -130,6 +129,10 @@ interface Props {
   hasMore?: boolean
   // 初始列宽
   initialColumnWidth?: number
+  // 是否可以编辑
+  canEdit: boolean
+  // 是否可以删除
+  canDelete: boolean
   // 重新加载
   onReload?: () => void
 }
@@ -148,6 +151,8 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   hasMore: true,
   showOp: false,
+  canEdit: false,
+  canDelete: false,
   initialColumnWidth: 280,
 })
 

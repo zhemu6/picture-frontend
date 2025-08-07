@@ -11,10 +11,7 @@
         <a-layout-content class="content">
           <router-view />
         </a-layout-content>
-
       </a-layout>
-
-
       <!-- 底部 -->
       <a-layout-footer ref="footerRef" class="footer">
         <GlobalFooter />

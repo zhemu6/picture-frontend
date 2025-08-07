@@ -196,12 +196,12 @@
               <template #icon><DownloadOutlined /></template>
               免费下载
             </a-button>
-            <div class="admin-actions" v-if="canEdit">
-              <a-button size="large" @click="doEdit" class="edit-btn">
+            <div class="admin-actions" >
+              <a-button v-if="canEdit" size="large" @click="doEdit" class="edit-btn">
                 <template #icon><EditOutlined /></template>
                 编辑
               </a-button>
-              <a-button danger size="large" @click="doDelete" class="delete-btn">
+              <a-button v-if="canDelete" danger size="large" @click="doDelete" class="delete-btn">
                 <template #icon><DeleteOutlined /></template>
                 删除
               </a-button>
@@ -411,6 +411,7 @@ import {
 } from '@ant-design/icons-vue'
 import router from '@/router'
 import ShareModal from '@/components/ShareModal.vue'
+import { SPACE_PERMISSION_ENUM } from '@/constants/space'
 
 interface Props {
   id: string | number
@@ -448,6 +449,18 @@ const hasPhotoParams = computed(() => {
     picture.value.focalLength
   )
 })
+
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (picture.value.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canEdit = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDelete = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
+
 
 // 分享操作 分享弹窗引用
 const shareModalRef = ref()
@@ -562,15 +575,7 @@ const fetchPictureDetail = async () => {
 // 获得登录用户
 const loginUserStore = useLoginUserStore()
 
-// 权限校验
-const canEdit = computed(() => {
-  const loginUser = loginUserStore.loginUser
-  if (!loginUser.id) {
-    return false
-  }
-  const user = picture.value.user || {}
-  return loginUser.id === user.id || loginUser.userRole === 'admin'
-})
+
 
 // 编辑事件
 const doEdit = () => {
@@ -691,7 +696,7 @@ const fetchComments = async () => {
       pageSize: pageSize.value,
       parentId: 0,
       sortField: 'createTime',
-      sortOrder: 'ascend',
+      sortOrder: 'descend',
     })
 
     if (res.data.code === 0 && res.data.data) {

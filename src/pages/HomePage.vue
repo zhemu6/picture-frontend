@@ -236,7 +236,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
-
 </script>
 
 <style scoped>
