@@ -65,13 +65,13 @@
       <a-button :icon="h(EditOutlined)" @click="doOutpaintingPicture"> AI拓图</a-button>
       <a-button :icon="h(EditOutlined)" @click="doCommonSynthesisPicture"> AI风格化</a-button>
       <!-- 图片裁剪 -->
-      {{ picture?.url }}
       <ImageCrop
         ref="imageCropperRef"
         :imageUrl="picture?.url"
         :picture="picture"
         :spaceId="spaceId"
         :onSuccess="onCropSuccess"
+        :space = "space"
       />
       <!-- AI 拓图 -->
       <ImageOutPainting
@@ -92,7 +92,7 @@
 </template>
 <script lang="ts" setup>
 import PictureUpload from '@/components/PictureUpload.vue'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref, watchEffect } from 'vue'
 import {
   editPictureUsingPost,
   getPictureVoByIdUsingGet,
@@ -105,6 +105,7 @@ import ImageCrop from '@/components/ImageCrop.vue'
 import { EditOutlined } from '@ant-design/icons-vue'
 import ImageOutPainting from '@/components/ImageOutPainting.vue'
 import ImageCommonSynthesis from '@/components/ImageCommonSynthesis.vue'
+import { getSpaceVoByIdUsingGet } from '@/api/spaceController'
 const testImageUrl = 'https://www.codefather.cn/logo.png'
 const router = useRouter()
 
@@ -241,6 +242,25 @@ const onCommonSynthesisSuccess = (newPicture: API.PictureVO) => {
 const onCropSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }
+// 获取空间信息
+const space = ref<API.SpaceVO>()
+// 获取空间信息
+const fetchSpace = async () => {
+  // 获取数据
+  if (spaceId.value) {
+    const res = await getSpaceVoByIdUsingGet({
+      id: spaceId.value,
+    })
+    if (res.data.code === 0 && res.data.data) {
+      space.value = res.data.data
+    }
+  }
+}
+
+watchEffect(() => {
+  fetchSpace()
+})
+
 </script>
 <style scoped>
 #addPicturePage {

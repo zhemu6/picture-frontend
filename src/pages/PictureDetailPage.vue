@@ -250,7 +250,6 @@
               </a-button>
             </div>
           </div>
-          {{ replyingToComment }}
           <!-- 评论列表 -->
           <a-divider style="margin: 16px 0">评论列表</a-divider>
 

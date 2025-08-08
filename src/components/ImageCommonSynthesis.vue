@@ -23,7 +23,10 @@
     </a-row>
     <a-form layout="vertical" style="margin-top: 16px">
       <a-form-item label="风格提示词 Prompt">
-        <a-input v-model:value="promptInput" placeholder="如：转换成法国绘本风格(金箔艺术、赛博朋克城市、油画风格、未来科幻)" />
+        <a-input
+          v-model:value="promptInput"
+          placeholder="如：转换成法国绘本风格(金箔艺术、赛博朋克城市、油画风格、未来科幻)"
+        />
       </a-form-item>
     </a-form>
     <a-flex justify="center" gap="16">
@@ -41,9 +44,9 @@ import { message } from 'ant-design-vue'
 import {
   createPictureCommonSynthesisTaskUsingPost,
   createPictureOutPaintingTaskUsingPost,
-  getAilPictureTaskUsingGet, getCommonSynthesisPictureTaskUsingGet,
+  getCommonSynthesisPictureTaskUsingGet,
   uploadPictureByUrlUsingPost,
-  uploadPictureUsingPost
+  uploadPictureUsingPost,
 } from '@/api/pictureController'
 
 interface Props {
@@ -61,7 +64,7 @@ const cropperRef = ref()
 
 const resultImageUrl = ref<string>('')
 
-const promptInput = ref<string>('');
+const promptInput = ref<string>('')
 /**
  * 创建任务
  */
@@ -69,7 +72,7 @@ const createTask = async () => {
   if (!props.picture.id) {
     return
   }
-  if(!promptInput.value){
+  if (!promptInput.value) {
     message.error('请输入风格提示词')
     return
   }

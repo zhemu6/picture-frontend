@@ -32,10 +32,8 @@
 import { onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
-  createPictureOutPaintingTaskUsingPost,
-  getAilPictureTaskUsingGet, getOutPaintingPictureTaskUsingGet,
+  createPictureOutPaintingTaskUsingPost, getOutPaintingPictureTaskUsingGet,
   uploadPictureByUrlUsingPost,
-  uploadPictureUsingPost
 } from '@/api/pictureController'
 
 interface Props {
@@ -48,8 +46,6 @@ const props = defineProps<Props>()
 const taskId = ref<string>('')
 const loading = ref<boolean>(false)
 const upLoading = ref<boolean>(false)
-// 编辑器组件的引用
-const cropperRef = ref()
 
 const resultImageUrl = ref<string>('')
 
@@ -57,13 +53,13 @@ const resultImageUrl = ref<string>('')
  * 创建任务
  */
 const createTask = async () => {
-  if (!props.picture.id) {
+  if (!props.picture?.id) {
     return
   }
   loading.value = true
   try {
     const res = await createPictureOutPaintingTaskUsingPost({
-      pictureId: props.picture.id,
+      pictureId: props.picture?.id,
       //根据需要设置作图参数
       parameters: {
         xScale: 2,
@@ -72,8 +68,8 @@ const createTask = async () => {
     })
     if (res.data.code === 0 && res.data.data) {
       message.success('创建任务成功，请耐心等待，不要退出界面')
-      console.log(res.data.data.output.taskId)
-      taskId.value = res.data.data.output.taskId
+      console.log(res.data.data.output?.taskId)
+      taskId.value = res.data.data.output?.taskId
       // 开启轮询
       startPolling()
     } else {
