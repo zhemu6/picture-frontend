@@ -772,6 +772,7 @@ declare namespace API {
   }
 
   type User = {
+    admin?: boolean
     createTime?: string
     editTime?: string
     id?: number
@@ -817,8 +818,10 @@ declare namespace API {
   }
 
   type UserVO = {
+    beLikedCount?: number
     createTime?: string
     id?: number
+    uploadCount?: number
     userAccount?: string
     userAvatar?: string
     userName?: string

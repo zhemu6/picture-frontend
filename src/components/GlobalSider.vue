@@ -17,7 +17,7 @@ import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/userLoginUserStore'
 import { userLogoutUsingPost } from '@/api/userController'
-import { PictureOutlined,UserOutlined  } from '@ant-design/icons-vue'
+import { PictureOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { SPACE_TYPE_ENUM } from '@/constants/space'
 import { listMyTeamSpaceUsingPost } from '@/api/spaceUserController'
 // 菜单列表
@@ -33,7 +33,7 @@ const fixedMenuItems = [
     icon: () => h(UserOutlined),
   },
   {
-    key: '/add_space?type='+ SPACE_TYPE_ENUM.TEAM,
+    key: '/add_space?type=' + SPACE_TYPE_ENUM.TEAM,
     label: '创建团队',
     icon: () => h(UserOutlined),
   },
@@ -41,37 +41,37 @@ const fixedMenuItems = [
 
 const router = useRouter()
 // 团队空间列表
-const teamSpaceList  = ref<API.SpaceUserVO[]>([])
+const teamSpaceList = ref<API.SpaceUserVO[]>([])
 
-const menuItems = computed(()=>{
+const menuItems = computed(() => {
   // 如果没有空间 直接显示固定空间
-  if(teamSpaceList.value.length < 0){
-    return fixedMenuItems;
+  if (teamSpaceList.value.length < 0) {
+    return fixedMenuItems
   }
   // 有团队空间 展示固定菜单和团队空间菜单
-  const teamSpaceSubMenus = teamSpaceList.value.map((spaceUser) =>{
+  const teamSpaceSubMenus = teamSpaceList.value.map((spaceUser) => {
     const space = spaceUser.space
-    return{
+    return {
       key: '/space/' + spaceUser.spaceId,
-      label:space?.spaceName,
+      label: space?.spaceName,
     }
   })
-  const teamSpaceMenuGroup  ={
+  const teamSpaceMenuGroup = {
     type: 'group',
-    label: '我的空间',
-    key:'teamSpace',
-    children: teamSpaceSubMenus
+    label: '团队空间',
+    key: 'teamSpace',
+    children: teamSpaceSubMenus,
   }
-  return [...fixedMenuItems,teamSpaceMenuGroup]
+  return [...fixedMenuItems, teamSpaceMenuGroup]
 })
 
 // 加载团队空间列表
-const fetchTeamSpaceList = async () =>{
+const fetchTeamSpaceList = async () => {
   const res = await listMyTeamSpaceUsingPost()
-  if(res.data.code===0&&res.data.data){
+  if (res.data.code === 0 && res.data.data) {
     teamSpaceList.value = res.data.data
-  }else{
-    message.error('加载我的团队空间失败，'+res.data.message)
+  } else {
+    message.error('加载我的团队空间失败，' + res.data.message)
   }
 }
 const loginUserStore = useLoginUserStore()
@@ -95,9 +95,8 @@ router.afterEach((to, from, failure) => {
 
 // 路由跳转事件
 const doMenuClick = ({ key }: { key: string }) => {
-  router.push( key)
+  router.push(key)
 }
-
 
 // 其中高亮的实现 是通过current的值来设置的 afterEach函数可以获得将要跳转的页面 将他的路径赋值给他即可
 router.afterEach((to, from, next) => {
@@ -105,182 +104,225 @@ router.afterEach((to, from, next) => {
 })
 </script>
 
-
 <style scoped>
-
-.globalSider {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
+#globalSider {
+  height: 100%;
 }
 
-.footer-left {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+/* 侧边栏容器美化 */
+:deep(.ant-layout-sider) {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-right: 1px solid #e2e8f0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
-.brand-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+:deep(.ant-layout-sider-collapsed) {
+  box-shadow: 1px 0 4px rgba(0, 0, 0, 0.04);
 }
 
-.brand-name {
-  font-size: 18px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.brand-author {
+/* 菜单整体样式 */
+:deep(.ant-menu) {
+  background: transparent;
+  border-right: none;
+  padding: 16px 8px;
   font-size: 14px;
-  color: #3b82f6;
-  font-weight: 500;
 }
 
-.footer-links {
-  display: flex;
-  gap: 16px;
-}
-
-.github-link {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #24292e;
-  color: white;
-  text-decoration: none;
-  border-radius: 20px;
-  font-size: 14px;
+/* 菜单项样式 */
+:deep(.ant-menu-item) {
+  margin: 4px 0;
+  border-radius: 12px;
+  height: 44px;
+  line-height: 44px;
+  padding: 0 16px;
+  color: #64748b;
   font-weight: 500;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(36, 41, 46, 0.2);
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
 }
 
-.github-link:hover {
-  background: #1a1e22;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(36, 41, 46, 0.3);
+:deep(.ant-menu-item::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+:deep(.ant-menu-item:hover::before) {
+  left: 100%;
+}
+
+:deep(.ant-menu-item:hover) {
+  background: rgba(102, 126, 234, 0.08);
+  color: #667eea;
+  transform: translateX(4px);
+  border-color: rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+/* 选中状态 */
+:deep(.ant-menu-item-selected) {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white !important;
+  font-weight: 600;
+  transform: translateX(6px);
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+:deep(.ant-menu-item-selected::after) {
+  display: none;
+}
+
+/* 菜单图标美化 */
+:deep(.ant-menu-item .anticon) {
+  font-size: 16px;
+  margin-right: 12px;
+  transition: all 0.3s ease;
+}
+
+:deep(.ant-menu-item:hover .anticon) {
+  transform: scale(1.1);
+  color: #667eea;
+}
+
+:deep(.ant-menu-item-selected .anticon) {
   color: white;
+  transform: scale(1.15);
 }
 
-.github-icon {
-  transition: transform 0.3s ease;
+/* 菜单组标题样式 */
+:deep(.ant-menu-item-group-title) {
+  padding: 12px 16px 8px;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
 }
 
-.github-link:hover .github-icon {
-  transform: rotate(360deg);
+:deep(.ant-menu-item-group-title::after) {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea, transparent);
+  border-radius: 1px;
 }
 
-.footer-right {
-  display: flex;
-  align-items: center;
+/* 菜单组列表样式 */
+:deep(.ant-menu-item-group-list) {
+  margin-bottom: 16px;
 }
 
-.visitor-counter {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(241, 245, 249, 0.8);
-  border-radius: 20px;
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  font-size: 14px;
-  color: #475569;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
+:deep(.ant-menu-item-group .ant-menu-item) {
+  padding-left: 24px;
+  margin: 2px 0;
+  height: 40px;
+  line-height: 40px;
+  font-size: 13px;
+  position: relative;
 }
 
-.visitor-icon {
-  color: #3b82f6;
-  animation: blink 2s infinite;
+:deep(.ant-menu-item-group .ant-menu-item::before) {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: #cbd5e1;
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
 
-@keyframes blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0.5;
-  }
+:deep(.ant-menu-item-group .ant-menu-item:hover::before) {
+  background: #667eea;
+  transform: translateY(-50%) scale(1.5);
 }
 
-.visitor-text {
-  font-weight: 500;
+:deep(.ant-menu-item-group .ant-menu-item-selected::before) {
+  background: white;
+  transform: translateY(-50%) scale(1.8);
 }
 
-.visitor-count {
-  font-weight: 700;
-  color: #3b82f6;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 2px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(226, 232, 240, 0.5);
-  min-width: 40px;
+/* 折叠状态优化 */
+:deep(.ant-layout-sider-collapsed .ant-menu-item) {
+  padding: 0;
   text-align: center;
+  height: 48px;
+  line-height: 48px;
+}
+
+:deep(.ant-layout-sider-collapsed .ant-menu-item .anticon) {
+  margin-right: 0;
+  font-size: 18px;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
-  .footer-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
-  }
-
-  .footer-left {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .brand-info {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .github-link {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-
-  .visitor-counter {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-
-  /* 移动端调整内容区域的底部间距 */
-  #basicLayout .content {
-    padding-bottom: 60px;
+@media (max-width: 992px) {
+  :deep(.ant-layout-sider) {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    bottom: 0;
+    z-index: 99;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
   }
 }
 
-@media (max-width: 480px) {
-  #basicLayout .footer {
-    padding: 16px;
+@media (max-width: 768px) {
+  :deep(.ant-menu) {
+    padding: 12px 4px;
   }
 
-  .brand-name {
-    font-size: 16px;
+  :deep(.ant-menu-item) {
+    height: 40px;
+    line-height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
   }
 
-  .brand-author {
-    font-size: 12px;
+  :deep(.ant-menu-item .anticon) {
+    font-size: 14px;
+    margin-right: 8px;
   }
+}
 
-  /* 小屏幕调整内容区域的底部间距 */
-  #basicLayout .content {
-    padding-bottom: 80px;
-  }
+/* 滚动条美化 */
+:deep(.ant-layout-sider) {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+}
+
+:deep(.ant-layout-sider::-webkit-scrollbar) {
+  width: 6px;
+}
+
+:deep(.ant-layout-sider::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+:deep(.ant-layout-sider::-webkit-scrollbar-thumb) {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+:deep(.ant-layout-sider::-webkit-scrollbar-thumb:hover) {
+  background: rgba(102, 126, 234, 0.5);
 }
 </style>

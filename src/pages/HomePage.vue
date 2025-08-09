@@ -63,6 +63,8 @@
         :loading="loading"
         :has-more="hasMore"
         :initial-column-width="280"
+        :can-edit="false"
+        :can-delete="false"
         @picture-click="doClickPicture"
         @image-loaded="onImageLoaded"
       />
@@ -76,13 +78,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, onUnmounted } from 'vue'
+import { reactive, ref, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue'
 import {
   listPictureTagCategoryUsingGet,
   listPictureVoByPageUsingPost,
 } from '@/api/pictureController'
 import { message } from 'ant-design-vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import PictureList from '@/components/PictureList.vue'
 
 // 数据相关
@@ -246,14 +248,11 @@ onUnmounted(() => {
 
 /* 顶部横幅区域 */
 .hero-section {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 60px 0 50px;
   text-align: center;
-  color: #1e293b;
+  color: white;
   margin-bottom: 30px;
-  position: relative;
-  overflow: hidden;
-  border-bottom: 1px solid #e2e8f0;
 }
 
 .hero-content {
@@ -263,47 +262,58 @@ onUnmounted(() => {
 }
 
 .hero-title {
-  font-size: 3rem;
+  font-size: 2.8rem;
   font-weight: 700;
   margin-bottom: 12px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 2px;
+  color: white;
 }
 
 .hero-subtitle {
   font-size: 1.1rem;
   margin-bottom: 30px;
   opacity: 0.9;
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .search-container {
-  max-width: 700px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .search-input {
-  border-radius: 50px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .search-input :deep(.ant-input) {
-  border-radius: 50px 0 0 50px;
-  border: none;
-  padding: 12px 24px;
+  border-radius: 8px 0 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 20px;
   font-size: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.ant-input):focus {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
 .search-input :deep(.ant-btn) {
-  border-radius: 0 50px 50px 0 !important;
-  background: #3b82f6;
-  border: none;
-  padding: 0 32px;
+  border-radius: 0 8px 8px 0 !important;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #667eea;
+  padding: 0 24px;
   height: 48px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .search-input :deep(.ant-btn):hover {
-  background: #2563eb;
+  background: rgba(255, 255, 255, 1);
+  color: #5a67d8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 筛选区域 */
@@ -319,32 +329,38 @@ onUnmounted(() => {
 
 .category-tabs :deep(.ant-tabs-nav) {
   background: white;
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .category-tabs :deep(.ant-tabs-tab) {
-  border-radius: 8px;
-  margin: 0 4px;
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin: 0 2px;
+  transition: all 0.2s ease;
 }
 
 .category-tabs :deep(.ant-tabs-tab-active) {
-  background: #3b82f6;
+  background: #667eea;
   color: white !important;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .category-tabs :deep(.ant-tabs-tab-active .ant-tabs-tab-btn) {
   color: white !important;
 }
 
+.category-tabs :deep(.ant-tabs-tab):hover {
+  background: #f8f9ff;
+  color: #667eea;
+}
+
 .tag-container {
   background: white;
   padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0f0f0;
 }
 
 .tag-label {
@@ -352,7 +368,7 @@ onUnmounted(() => {
   align-items: center;
   margin-bottom: 12px;
   font-weight: 600;
-  color: #333;
+  color: #667eea;
   font-size: 15px;
 }
 
@@ -362,25 +378,26 @@ onUnmounted(() => {
 }
 
 .custom-tag {
-  border-radius: 20px;
-  padding: 4px 12px;
-  border: 2px solid #e8e8e8;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  font-size: 12px;
+  border-radius: 6px;
+  padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.2s ease;
+  font-weight: 400;
+  font-size: 13px;
+  background: white;
 }
 
 .custom-tag:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  transform: translateY(-2px);
+  border-color: #667eea;
+  color: #667eea;
+  background: #f8f9ff;
 }
 
 .custom-tag.ant-tag-checkable-checked {
-  background: #3b82f6;
-  border-color: transparent;
+  background: #667eea;
+  border-color: #667eea;
   color: white;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* 瀑布流区域 */
@@ -398,22 +415,22 @@ onUnmounted(() => {
   bottom: 30px;
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
   z-index: 1000;
   backdrop-filter: blur(10px);
 }
 
 .back-to-top:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .back-to-top-icon {

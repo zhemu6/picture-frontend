@@ -7,17 +7,15 @@
         <a-row :gutter="[24, 24]" align="middle">
           <a-col :span="24" :lg="16">
             <div class="user-info-card">
-              <a-avatar
-                :src="user.userAvatar"
-                :size="120"
-                class="user-avatar"
-              >
+              <a-avatar :src="user.userAvatar" :size="120" class="user-avatar">
                 <template #icon><UserOutlined /></template>
               </a-avatar>
               <div class="user-details">
                 <h1 class="user-name">{{ user.userName || '未设置昵称' }}</h1>
                 <p class="user-account">@{{ user.userAccount || 'unknown' }}</p>
-                <p class="user-profile">{{ user.userProfile || '这个人很懒，什么都没有留下...' }}</p>
+                <p class="user-profile">
+                  {{ user.userProfile || '这个人很懒，什么都没有留下...' }}
+                </p>
                 <div class="user-meta">
                   <span class="user-id">ID: {{ user.id || 'null' }}</span>
                 </div>
@@ -84,7 +82,7 @@
                 <div class="stat-label">用户ID</div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">0</div>
+                <div class="stat-number">{{ user.uploadCount || 0}}</div>
                 <div class="stat-label">上传图片</div>
               </div>
               <div class="stat-item">
@@ -92,7 +90,7 @@
                 <div class="stat-label">下载次数</div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">0</div>
+                <div class="stat-number">{{user.beLikedCount || 0}}</div>
                 <div class="stat-label">获得点赞</div>
               </div>
             </div>
@@ -162,7 +160,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { formatSize, downloadImage } from '@/utils'
 import dayjs from 'dayjs'
 
-import { uploadPictureUsingPost } from '@/api/pictureController'; // 你的上传接口
+import { uploadPictureUsingPost } from '@/api/pictureController' // 你的上传接口
 
 import { useLoginUserStore } from '@/stores/userLoginUserStore'
 import {
@@ -172,10 +170,14 @@ import {
   UserOutlined,
   IdcardOutlined,
   ProfileOutlined,
-  UploadOutlined
+  UploadOutlined,
 } from '@ant-design/icons-vue'
 import router from '@/router'
-import { getUserVoByIdUsingGet, updateUserUsingPost, uploadAvatarUsingPost } from '@/api/userController'
+import {
+  getUserVoByIdUsingGet,
+  updateUserUsingPost,
+  uploadAvatarUsingPost,
+} from '@/api/userController'
 
 interface Props {
   id: string | number
@@ -192,15 +194,15 @@ const editFormRef = ref()
 const editForm = reactive({
   userName: '',
   userProfile: '',
-  userAvatar: ''
+  userAvatar: '',
 })
 
 // 表单验证规则
 const editRules = {
   userName: [
     { required: true, message: '请输入昵称', trigger: 'blur' },
-    { min: 2, max: 20, message: '昵称长度在 2 到 20 个字符', trigger: 'blur' }
-  ]
+    { min: 2, max: 20, message: '昵称长度在 2 到 20 个字符', trigger: 'blur' },
+  ],
 }
 
 // 判断是否可以编辑（这里需要根据你的业务逻辑来实现）
@@ -213,9 +215,11 @@ const canEdit = computed(() => {
 // 获取用户详情信息
 const fetchUserDetail = async () => {
   try {
+
     const res = await getUserVoByIdUsingGet({
       id: props.id,
     })
+    console.log(res)
     if (res.data.code === 0 && res.data.data) {
       user.value = res.data.data
     } else {
@@ -246,7 +250,7 @@ const handleEditSubmit = async () => {
       id: user.value.id,
       userName: editForm.userName,
       userProfile: editForm.userProfile,
-      userAvatar: editForm.userAvatar
+      userAvatar: editForm.userAvatar,
     })
 
     if (res.data.code === 0) {
@@ -278,49 +282,47 @@ const handleEditCancel = () => {
   editFormRef.value?.resetFields()
 }
 
-
 // 处理头像上传（这里需要根据你的上传逻辑来实现）
 const handleAvatarUpload = async () => {
   // 创建一个文件选择框
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/png, image/jpeg';
-  input.click();
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/png, image/jpeg'
+  input.click()
 
   input.onchange = async () => {
-    const file = input.files?.[0];
-    if (!file) return;
+    const file = input.files?.[0]
+    if (!file) return
 
     // 前端校验
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    const isLt20M = file.size / 1024 / 1024 < 20;
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+    const isLt20M = file.size / 1024 / 1024 < 20
 
     if (!isJpgOrPng) {
-      message.error('仅支持 JPG/PNG 格式图片');
-      return;
+      message.error('仅支持 JPG/PNG 格式图片')
+      return
     }
     if (!isLt20M) {
-      message.error('图片大小不能超过 20MB');
-      return;
+      message.error('图片大小不能超过 20MB')
+      return
     }
 
     try {
-      editLoading.value = true;
-      const res = await uploadAvatarUsingPost({}, file);
+      editLoading.value = true
+      const res = await uploadAvatarUsingPost({}, file)
       if (res.data.code === 0 && res.data.data) {
-        editForm.userAvatar = res.data.data;
-        message.success('头像上传成功');
+        editForm.userAvatar = res.data.data
+        message.success('头像上传成功')
       } else {
-        message.error('头像上传失败');
+        message.error('头像上传失败')
       }
     } catch (e) {
-      message.error('头像上传失败');
+      message.error('头像上传失败')
     } finally {
-      editLoading.value = false;
+      editLoading.value = false
     }
-  };
-};
-
+  }
+}
 
 onMounted(() => {
   fetchUserDetail()

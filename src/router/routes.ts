@@ -17,6 +17,7 @@ const routes = [
     component: () => import('@/pages/HomePage.vue'),
     meta: {
       icon: () => h(HomeOutlined),
+      keepAlive: true, // 启用组件缓存
     },
   },
   {
@@ -50,7 +51,6 @@ const routes = [
     component: () => import('@/pages/AddPicturePage.vue'),
     meta: {
       access: ACCESS_CONSTANTS.USER,
-      // access: ACCESS_CONSTANTS.ADMIN,
     },
   },
 
@@ -82,7 +82,6 @@ const routes = [
     meta: {
       hideInMenu: true,
     },
-
   },
 
   {
@@ -92,7 +91,7 @@ const routes = [
     component: () => import('@/pages/PictureDetailPage.vue'),
     meta: {
       hideInMenu: true,
-      access: ACCESS_CONSTANTS.NOT_LOGIN
+      access: ACCESS_CONSTANTS.NOT_LOGIN,
     },
   },
 
@@ -111,6 +110,7 @@ const routes = [
     props: true,
     component: () => import('@/pages/admin/SpaceUserManagePage.vue'),
     meta: {
+      hideInMenu: true,
       access: ACCESS_CONSTANTS.ADMIN,
     },
   },
@@ -121,6 +121,7 @@ const routes = [
     component: () => import('@/pages/AddSpacePage.vue'),
 
     meta: {
+      hideInMenu: true,
       access: ACCESS_CONSTANTS.USER,
     },
   },
@@ -128,7 +129,6 @@ const routes = [
     path: '/my_space',
     name: '我的空间',
     component: () => import('@/pages/MySpacePage.vue'),
-
     meta: {
       access: ACCESS_CONSTANTS.USER,
       // access: ACCESS_CONSTANTS.ADMIN,

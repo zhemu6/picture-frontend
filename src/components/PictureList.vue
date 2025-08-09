@@ -74,9 +74,15 @@
             </div>
             <!-- 图片操作 -->
             <div v-if="showOp" class="picture-actions">
-              <EditOutlined v-if="canEdit" @click.stop="doEdit(picture, $event)" />
-              <DeleteOutlined v-if="canDelete" @click.stop="doDelete(picture, $event)" />
-              <ShareAltOutlined @click.stop="doShare(picture, $event)" />
+              <div class="action-button" v-if="canEdit" @click.stop="doEdit(picture, $event)">
+                <EditOutlined />
+              </div>
+              <div class="action-button" v-if="canDelete" @click.stop="doDelete(picture, $event)">
+                <DeleteOutlined />
+              </div>
+              <div class="action-button" @click.stop="doShare(picture, $event)">
+                <ShareAltOutlined />
+              </div>
             </div>
           </div>
         </div>
@@ -203,7 +209,7 @@ const doDelete = async (picture: API.PictureVO, e: MouseEvent) => {
     // todo 这里我们是在刷新后手动刷新一次页面 来确保瀑布流显示正常
     setTimeout(() => {
       window.location.reload()
-    }, 200) // 延迟500ms后刷新，让用户看到删除成功提示
+    }, 200) // 延迟200ms后刷新，让用户看到删除成功提示
   } else {
     message.error('删除失败')
   }
@@ -306,19 +312,37 @@ onUnmounted(() => {
 }
 
 .picture-card {
-  background: white;
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.picture-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .picture-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border-color: #cbd5e1;
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.picture-card:hover::before {
+  opacity: 1;
 }
 
 .picture-cover {
@@ -440,6 +464,46 @@ onUnmounted(() => {
   color: #999;
   font-size: 11px;
   font-weight: 500;
+}
+
+.picture-actions {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(102, 126, 234, 0.1);
+  height: 28px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.action-button:hover {
+  color: #4f46e5;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.action-button:active {
+  color: #3730a3;
+}
+
+.action-button:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background: rgba(102, 126, 234, 0.2);
 }
 
 /* 加载状态 */

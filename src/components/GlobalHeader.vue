@@ -39,7 +39,7 @@
                     <a @click="doClickUser(loginUserStore.loginUser)"><HomeOutlined /> 个人主页</a>
                   </a-menu-item>
                   <a-menu-item>
-                    <router-link to="/my_space"><UserOutlined/>我的空间 </router-link>
+                    <router-link to="/my_space"><UserOutlined />我的空间 </router-link>
                   </a-menu-item>
                   <a-menu-item @click="doLogout">
                     <LogoutOutlined />
@@ -65,7 +65,7 @@ import { computed, h, ref } from 'vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/userLoginUserStore'
-import { DownOutlined,LogoutOutlined,UserOutlined ,HomeOutlined} from '@ant-design/icons-vue'
+import { DownOutlined, LogoutOutlined, UserOutlined, HomeOutlined } from '@ant-design/icons-vue'
 import { userLogoutUsingPost } from '@/api/userController'
 import { routes } from '@/router/routes'
 import checkAccess from '@/access/checkAccess'
@@ -172,7 +172,7 @@ const doClickUser = (user: API.UserVO) => {
   font-weight: 700;
   margin-left: 16px;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -182,13 +182,13 @@ const doClickUser = (user: API.UserVO) => {
   height: 40px;
   width: 40px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
   transition: all 0.3s ease;
 }
 
 .logo:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* 菜单样式美化 */
@@ -207,16 +207,16 @@ const doClickUser = (user: API.UserVO) => {
 }
 
 #globalHeader :deep(.ant-menu-item:hover) {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
   transform: translateY(-1px);
 }
 
 #globalHeader :deep(.ant-menu-item-selected) {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white !important;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 #globalHeader :deep(.ant-menu-item-selected::after) {
@@ -245,9 +245,9 @@ const doClickUser = (user: API.UserVO) => {
 
 .user-info:hover {
   background: rgba(255, 255, 255, 0.95);
-  border-color: #3b82f6;
+  border-color: #667eea;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .user-dropdown {
@@ -270,20 +270,20 @@ const doClickUser = (user: API.UserVO) => {
 
 /* 登录按钮美化 */
 #globalHeader :deep(.ant-btn-primary) {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
   border-radius: 20px;
   padding: 0 24px;
   height: 36px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
 }
 
 #globalHeader :deep(.ant-btn-primary:hover) {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #5a6fd8, #6a42a0);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* 用户头像美化 */
@@ -293,7 +293,7 @@ const doClickUser = (user: API.UserVO) => {
 }
 
 .user-info:hover :deep(.ant-avatar) {
-  border-color: #3b82f6;
+  border-color: #667eea;
   transform: scale(1.05);
 }
 
@@ -304,7 +304,7 @@ const doClickUser = (user: API.UserVO) => {
 }
 
 .user-info:hover :deep(.anticon-down) {
-  color: #3b82f6;
+  color: #667eea;
   transform: rotate(180deg);
 }
 

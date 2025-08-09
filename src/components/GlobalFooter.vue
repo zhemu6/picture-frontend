@@ -31,13 +31,9 @@
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script setup lang="ts">
-
-
 // 访问人数
 import { nextTick, onMounted, ref } from 'vue'
 
@@ -46,11 +42,11 @@ const footerRef = ref()
 
 // 模拟访问人数统计
 const updateVisitorCount = () => {
-// 从localStorage获取访问次数
+  // 从localStorage获取访问次数
   const stored = localStorage.getItem('visitor-count')
   let count = stored ? parseInt(stored) : 1000 // 初始值设为1000
 
-// 检查今天是否已经访问过
+  // 检查今天是否已经访问过
   const today = new Date().toDateString()
   const lastVisit = localStorage.getItem('last-visit')
 
@@ -77,15 +73,12 @@ onMounted(() => {
   updateVisitorCount()
   setFooterPadding()
 
-// 监听窗口大小变化
+  // 监听窗口大小变化
   window.addEventListener('resize', setFooterPadding)
 })
-
 </script>
 
-
 <style scoped>
-
 .footer-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -112,7 +105,7 @@ onMounted(() => {
 .brand-name {
   font-size: 18px;
   font-weight: 700;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -120,7 +113,7 @@ onMounted(() => {
 
 .brand-author {
   font-size: 14px;
-  color: #3b82f6;
+  color: #667eea;
   font-weight: 500;
 }
 
@@ -179,7 +172,7 @@ onMounted(() => {
 }
 
 .visitor-icon {
-  color: #3b82f6;
+  color: #667eea;
   animation: blink 2s infinite;
 }
 
@@ -200,7 +193,7 @@ onMounted(() => {
 
 .visitor-count {
   font-weight: 700;
-  color: #3b82f6;
+  color: #667eea;
   background: rgba(255, 255, 255, 0.9);
   padding: 2px 8px;
   border-radius: 10px;

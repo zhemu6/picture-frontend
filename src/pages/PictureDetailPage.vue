@@ -183,7 +183,7 @@
             <div class="stat-item">
               <div class="stat-icon comment-icon">💬</div>
               <div class="stat-content">
-                <div class="stat-number">0</div>
+                <div class="stat-number">{{ commentTotal }}</div>
                 <div class="stat-label">评论</div>
               </div>
             </div>
@@ -196,16 +196,16 @@
               <template #icon><DownloadOutlined /></template>
               免费下载
             </a-button>
-            <div class="admin-actions" >
-              <a-button v-if="canEdit" size="large" @click="doEdit" class="edit-btn">
+            <div class="admin-actions">
+              <a-button v-if="canEdit" @click="doEdit" class="action-btn edit-btn">
                 <template #icon><EditOutlined /></template>
                 编辑
               </a-button>
-              <a-button v-if="canDelete" danger size="large" @click="doDelete" class="delete-btn">
+              <a-button v-if="canDelete" @click="doDelete" class="action-btn delete-btn">
                 <template #icon><DeleteOutlined /></template>
                 删除
               </a-button>
-              <a-button danger size="large" @click="doShare" class="delete-btn">
+              <a-button @click="doShare" class="action-btn share-btn">
                 <template #icon><ShareAltOutlined /></template>
                 分享
               </a-button>
@@ -231,22 +231,76 @@
 
           <!-- 评论输入框 -->
           <div class="comment-input-area">
-            <a-textarea
-              v-model:value="commentContent"
-              placeholder="说点什么吧..."
-              :auto-size="{ minRows: 2, maxRows: 6 }"
-              :maxlength="500"
-              show-count
-              class="comment-textarea"
-            />
+            <div class="comment-input-wrapper">
+              <a-textarea
+                ref="commentTextareaRef"
+                v-model:value="commentContent"
+                placeholder="说点什么吧... 可以使用表情包哦 😊"
+                :auto-size="{ minRows: 3, maxRows: 8 }"
+                :maxlength="500"
+                show-count
+                class="comment-textarea enhanced-textarea"
+              />
+
+              <!-- 表情包选择器 -->
+              <div v-if="showEmojiPicker" class="emoji-picker">
+                <div class="emoji-header">
+                  <div class="emoji-categories">
+                    <button
+                      v-for="(category, index) in emojiCategories"
+                      :key="index"
+                      @click="activeEmojiCategory = index"
+                      :class="['emoji-category-btn', { active: activeEmojiCategory === index }]"
+                    >
+                      {{ category.icon }}
+                    </button>
+                  </div>
+                  <button @click="showEmojiPicker = false" class="emoji-close-btn">✕</button>
+                </div>
+
+                <div class="emoji-content">
+                  <div class="emoji-category-name">
+                    {{ emojiCategories[activeEmojiCategory]?.name }}
+                  </div>
+                  <div class="emoji-grid">
+                    <button
+                      v-for="emoji in emojiCategories[activeEmojiCategory]?.emojis"
+                      :key="emoji"
+                      @click="insertEmoji(emoji)"
+                      class="emoji-btn"
+                    >
+                      {{ emoji }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="comment-submit-area">
+              <div class="comment-tools">
+                <button @click="toggleEmojiPicker" class="tool-btn emoji-tool-btn">
+                  <span class="tool-icon">😊</span>
+                  <span class="tool-text">表情</span>
+                </button>
+                <button
+                  @click="clearComment"
+                  class="tool-btn clear-tool-btn"
+                  v-if="commentContent.trim()"
+                >
+                  <span class="tool-icon">🗑️</span>
+                  <span class="tool-text">清空</span>
+                </button>
+              </div>
+
               <a-button
                 type="primary"
                 @click="submitComment"
                 :loading="commentSubmitting"
                 :disabled="!commentContent.trim()"
+                class="submit-btn"
               >
-                发表评论
+                <template #icon>💬</template>
+                {{ commentSubmitting ? '发送中...' : '发表评论' }}
               </a-button>
             </div>
           </div>
@@ -283,7 +337,7 @@
                         type="link"
                         danger
                         size="small"
-                        @click="deleteComment(comment.id,null)"
+                        @click="deleteComment(comment.id, null)"
                         class="action-btn"
                       >
                         <template #icon><DeleteOutlined /></template>
@@ -342,7 +396,7 @@
                                   type="link"
                                   danger
                                   size="small"
-                                  @click="deleteComment(childComment.id,childComment.parentId)"
+                                  @click="deleteComment(childComment.id, childComment.parentId)"
                                   class="action-btn"
                                 >
                                   <template #icon><DeleteOutlined /></template>
@@ -411,6 +465,7 @@ import {
 import router from '@/router'
 import ShareModal from '@/components/ShareModal.vue'
 import { SPACE_PERMISSION_ENUM } from '@/constants/space'
+import { emojiCategories, frequentEmojis, type EmojiCategory } from '@/constants/emojis'
 
 interface Props {
   id: string | number
@@ -433,6 +488,11 @@ const replyingToComment = ref<API.PictureCommentVO | null>(null) // 当前正在
 const expandedComments = ref<Record<string, boolean>>({}) // 记录哪些评论已展开子评论
 const childComments = ref<Record<string, API.PictureCommentVO[]>>({}) // 子评论列表，键为父评论ID
 const childCommentsLoading = ref<Record<string, boolean>>({}) // 子评论加载状态
+
+// 表情包相关
+const showEmojiPicker = ref(false)
+const activeEmojiCategory = ref(0)
+const commentTextareaRef = ref()
 
 // 根据后端返回的状态来判断是否已点赞/收藏
 const isLiked = computed(() => picture.value.hasLiked || false)
@@ -459,7 +519,6 @@ function createPermissionChecker(permission: string) {
 // 定义权限检查
 const canEdit = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
 const canDelete = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
-
 
 // 分享操作 分享弹窗引用
 const shareModalRef = ref()
@@ -495,12 +554,13 @@ const doLike = async () => {
       const wasLiked = picture.value.hasLiked
       picture.value.hasLiked = !wasLiked
 
-      // 更新点赞数量
+      // 更新点赞数量 - 确保数值类型转换
+      const currentLikeCount = Number(picture.value.likeCount) || 0
       if (picture.value.hasLiked) {
-        picture.value.likeCount = (picture.value.likeCount || 0) + 1
+        picture.value.likeCount = currentLikeCount + 1
         message.success('点赞成功 ❤️')
       } else {
-        picture.value.likeCount = Math.max((picture.value.likeCount || 0) - 1, 0)
+        picture.value.likeCount = Math.max(currentLikeCount - 1, 0)
         message.success('取消点赞')
       }
     } else {
@@ -536,12 +596,13 @@ const doFavorite = async () => {
       const wasFavorited = picture.value.hasFavorite
       picture.value.hasFavorite = !wasFavorited
 
-      // 更新收藏数量
+      // 更新收藏数量 - 确保数值类型转换
+      const currentFavoriteCount = Number(picture.value.favoriteCount) || 0
       if (picture.value.hasFavorite) {
-        picture.value.favoriteCount = (picture.value.favoriteCount || 0) + 1
+        picture.value.favoriteCount = currentFavoriteCount + 1
         message.success('收藏成功 ⭐')
       } else {
-        picture.value.favoriteCount = Math.max((picture.value.favoriteCount || 0) - 1, 0)
+        picture.value.favoriteCount = Math.max(currentFavoriteCount - 1, 0)
         message.success('取消收藏')
       }
     } else {
@@ -573,8 +634,6 @@ const fetchPictureDetail = async () => {
 
 // 获得登录用户
 const loginUserStore = useLoginUserStore()
-
-
 
 // 编辑事件
 const doEdit = () => {
@@ -645,14 +704,13 @@ const submitComment = async () => {
     // 如果是回复某条评论
     // 我是回复某条信息 如果这个信息有值 1 回复一级评论 如果是一级评论 parentid就是回复的id 那我就是 2 回复二级评论 parentid 就是回复的这个二级评论的
     if (replyingToComment.value) {
-      if(replyingToComment.value.parentId!=0){
+      if (replyingToComment.value.parentId != 0) {
         // 如果回复的是子评论，则parentId为该子评论的parentId
         parentId = replyingToComment.value.parentId
-      }else{
+      } else {
         // 如果回复的是一级评论，则parentId为该一级评论的id
         parentId = replyingToComment.value.id
       }
-
     }
     // console.log("父评论id"+parentId)
     const res = await addPictureCommentUsingPost({
@@ -775,7 +833,7 @@ const fetchChildComments = async (parentId: number | undefined) => {
 }
 
 // 删除评论
-const deleteComment = async (commentId: number | undefined,parentId:number|undefined) => {
+const deleteComment = async (commentId: number | undefined, parentId: number | undefined) => {
   if (!commentId) return
 
   try {
@@ -785,7 +843,7 @@ const deleteComment = async (commentId: number | undefined,parentId:number|undef
       // 重新加载评论列表
       fetchComments()
       // 如果删的是二级回复 就得刷新二级恢复列表
-      if(parentId){
+      if (parentId) {
         fetchChildComments(parentId)
       }
     } else {
@@ -808,12 +866,39 @@ const handleSizeChange = (current: number, size: number) => {
   fetchComments()
 }
 
+// 表情包相关函数
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value
+}
+
+const insertEmoji = (emoji: string) => {
+  const textarea = commentTextareaRef.value?.$el?.querySelector('textarea')
+  if (textarea) {
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = commentContent.value
+    commentContent.value = text.slice(0, start) + emoji + text.slice(end)
+
+    // 设置光标位置
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length)
+    }, 0)
+  } else {
+    commentContent.value += emoji
+  }
+}
+
+const clearComment = () => {
+  commentContent.value = ''
+  replyingToComment.value = null
+}
+
 onMounted(() => {
   fetchPictureDetail()
   // 获取所有的一级评论
   fetchComments()
 })
-
 </script>
 
 <style scoped>
@@ -1307,23 +1392,64 @@ onMounted(() => {
 }
 
 .admin-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
 }
 
-.edit-btn,
-.delete-btn {
-  height: 32px;
-  border-radius: 16px;
+.action-btn {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
   font-weight: 500;
   font-size: 12px;
   transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
-.edit-btn:hover,
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #10b981;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  border-color: #059669;
+  color: white;
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #ef4444;
+  color: white;
+}
+
 .delete-btn:hover {
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border-color: #dc2626;
+  color: white;
+}
+
+.share-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-color: #8b5cf6;
+  color: white;
+}
+
+.share-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border-color: #7c3aed;
+  color: white;
 }
 
 /* 评论卡片 */
@@ -1337,14 +1463,249 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-.comment-textarea {
+.comment-input-wrapper {
+  position: relative;
   margin-bottom: 12px;
-  border-radius: 8px;
 }
 
+.enhanced-textarea {
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.enhanced-textarea:hover {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.enhanced-textarea:focus-within {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  background: #ffffff;
+}
+
+.enhanced-textarea :deep(.ant-input) {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.enhanced-textarea :deep(.ant-input::placeholder) {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* 表情包选择器 */
+.emoji-picker {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border: 2px solid #8b5cf6;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
+  margin-top: 8px;
+  backdrop-filter: blur(10px);
+  animation: emojiPickerSlideIn 0.3s ease-out;
+}
+
+@keyframes emojiPickerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.emoji-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-radius: 10px 10px 0 0;
+}
+
+.emoji-categories {
+  display: flex;
+  gap: 8px;
+}
+
+.emoji-category-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-category-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.emoji-category-btn.active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.emoji-close-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.emoji-content {
+  padding: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.emoji-category-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.emoji-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-btn:hover {
+  background: #f3f4f6;
+  transform: scale(1.2);
+}
+
+.emoji-btn:active {
+  transform: scale(1.1);
+}
+
+/* 评论提交区域 */
 .comment-submit-area {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.comment-tools {
+  display: flex;
+  gap: 8px;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tool-btn:hover {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.emoji-tool-btn:hover {
+  background: linear-gradient(135deg, #fef3c7, #fbbf24);
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.clear-tool-btn:hover {
+  background: linear-gradient(135deg, #fee2e2, #fca5a5);
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.tool-icon {
+  font-size: 14px;
+}
+
+.tool-text {
+  font-weight: 500;
+}
+
+.submit-btn {
+  height: 36px;
+  border-radius: 8px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border: none;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.submit-btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* 评论列表样式 */

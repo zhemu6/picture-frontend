@@ -9,7 +9,12 @@
       <a-layout>
         <GlobalSider class="sider" />
         <a-layout-content class="content">
-          <router-view />
+          <router-view v-slot="{ Component, route }">
+            <keep-alive>
+              <component :is="Component" v-if="route.meta.keepAlive" />
+            </keep-alive>
+            <component :is="Component" v-if="!route.meta.keepAlive" />
+          </router-view>
         </a-layout-content>
       </a-layout>
       <!-- 底部 -->
@@ -25,7 +30,6 @@ import { ref, onMounted, nextTick } from 'vue'
 import GlobalHeader from '@/components/GlobalHeader.vue'
 import GlobalFooter from '@/components/GlobalFooter.vue'
 import GlobalSider from '@/components/GlobalSider.vue'
-
 </script>
 
 <style scoped>
@@ -55,13 +59,11 @@ import GlobalSider from '@/components/GlobalSider.vue'
 #basicLayout .sider {
   background: linear-gradient(to right, #fefefe, #fff);
   border-right: 0.5px solid #eee;
-
 }
-#basicLayout :deep(.ant-menu-root){
+#basicLayout :deep(.ant-menu-root) {
   border-bottom: none !important;
   border-inline-end: none !important;
 }
-
 
 #basicLayout .footer {
   background: rgba(255, 255, 255, 0.4);
@@ -75,5 +77,4 @@ import GlobalSider from '@/components/GlobalSider.vue'
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
   z-index: 100;
 }
-
 </style>

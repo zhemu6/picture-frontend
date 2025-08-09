@@ -1,92 +1,140 @@
 <template>
-  <div id="addPicturePage">
-    <h2 style="margin-bottom: 16px">{{ route.query?.id ? '修改图片' : '创建图片' }}</h2>
-    <a-typography-paragraph v-if="spaceId" type="secondary">
-      保存至空间:<a :href="`/space/${spaceId}`" target="_blank">{{ spaceId }}</a>
-    </a-typography-paragraph>
+  <div class="add-picture-page">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          {{ route.query?.id ? '修改图片' : '创建图片' }}
+        </h1>
+        <p v-if="spaceId" class="space-info">
+          保存至空间:
+          <a :href="`/space/${spaceId}`" target="_blank" class="space-link">{{ spaceId }}</a>
+        </p>
+      </div>
+    </div>
 
-    <!--图片上传组件-->
-    选择上传方式
-    <a-tabs v-model:activeKey="uploadType">
-      <a-tab-pane key="file" tab="文件上传">
-        <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
-      </a-tab-pane>
-      <a-tab-pane key="url" tab="Url上传" force-render>
-        <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
-      </a-tab-pane>
-    </a-tabs>
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+      <!-- 图片上传区域 -->
+      <div class="upload-section">
+        <div class="section-header">
+          <h3 class="section-title">选择上传方式</h3>
+        </div>
+        <div class="upload-tabs">
+          <a-tabs v-model:activeKey="uploadType" class="custom-tabs">
+            <a-tab-pane key="file" tab="文件上传">
+              <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
+            </a-tab-pane>
+            <a-tab-pane key="url" tab="URL上传" force-render>
+              <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
+            </a-tab-pane>
+          </a-tabs>
+        </div>
+      </div>
 
-    <!--图片信息表单-->
-    <a-form
-      v-if="picture"
-      name="pictureForm"
-      layout="vertical"
-      :model="pictureForm"
-      @finish="handleSubmit"
-    >
-      <a-form-item name="name" label="名称">
-        <a-input v-model:value="pictureForm.name" placeholder="输入图片名称" allow-clear />
-      </a-form-item>
-      <a-form-item name="introduction" label="简介">
-        <a-textarea
-          v-model:value="pictureForm.introduction"
-          placeholder="输入图片简介"
-          :autoSize="{ minRows: 2, maxRows: 5 }"
-          allow-clear
+      <!-- 编辑工具栏 -->
+      <div v-if="picture" class="edit-section">
+        <div class="section-header">
+          <h3 class="section-title">图片编辑工具</h3>
+        </div>
+        <div class="edit-tools">
+          <a-button class="edit-tool-btn" @click="doEditPicture">
+            <EditOutlined />
+            编辑图片
+          </a-button>
+          <a-button class="edit-tool-btn" @click="doOutpaintingPicture">
+            <EditOutlined />
+            AI拓图
+          </a-button>
+          <a-button class="edit-tool-btn" @click="doCommonSynthesisPicture">
+            <EditOutlined />
+            AI风格化
+          </a-button>
+        </div>
+
+        <!-- 隐藏的组件 -->
+        <ImageCrop
+          ref="imageCropperRef"
+          :imageUrl="picture?.url"
+          :picture="picture"
+          :spaceId="spaceId"
+          :onSuccess="onCropSuccess"
+          :space="space"
         />
-      </a-form-item>
-
-      <a-form-item name="category" label="分类">
-        <a-auto-complete
-          v-model:value="pictureForm.category"
-          :options="categoryOptions"
-          placeholder="输入图片分类"
-          allow-clear
+        <ImageOutPainting
+          ref="imageOutpaintingRef"
+          :spaceId="spaceId"
+          :onSuccess="onOutPaintingSuccess"
+          :picture="picture"
         />
-      </a-form-item>
-      <a-form-item name="tags" label="标签">
-        <a-select
-          v-model:value="pictureForm.tags"
-          :options="tagOptions"
-          mode="tags"
-          placeholder="输入图片标签"
+        <ImageCommonSynthesis
+          ref="imageCommonSynthesisRef"
+          :spaceId="spaceId"
+          :onSuccess="onCommonSynthesisSuccess"
+          :picture="picture"
         />
-      </a-form-item>
+      </div>
 
-      <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 100%"
-          >{{ route.query?.id ? '修改' : '创建' }}
-        </a-button>
-      </a-form-item>
-    </a-form>
-    <!--编辑图片按钮 包括 1.旋转 裁剪等常规操作、2.AI拓图、3.AI风格化  -->
-    <div v-if="picture" class="edit-bar">
-      <a-button :icon="h(EditOutlined)" @click="doEditPicture"> 编辑图片</a-button>
-      <a-button :icon="h(EditOutlined)" @click="doOutpaintingPicture"> AI拓图</a-button>
-      <a-button :icon="h(EditOutlined)" @click="doCommonSynthesisPicture"> AI风格化</a-button>
-      <!-- 图片裁剪 -->
-      <ImageCrop
-        ref="imageCropperRef"
-        :imageUrl="picture?.url"
-        :picture="picture"
-        :spaceId="spaceId"
-        :onSuccess="onCropSuccess"
-        :space = "space"
-      />
-      <!-- AI 拓图 -->
-      <ImageOutPainting
-        ref="imageOutpaintingRef"
-        :spaceId="spaceId"
-        :onSuccess="onOutPaintingSuccess"
-        :picture="picture"
-      />
-      <!-- AI 风格化 -->
-      <ImageCommonSynthesis
-        ref="imageCommonSynthesisRef"
-        :spaceId="spaceId"
-        :onSuccess="onCommonSynthesisSuccess"
-        :picture="picture"
-      />
+      <!-- 图片信息表单 -->
+      <div v-if="picture" class="form-section">
+        <div class="section-header">
+          <h3 class="section-title">图片信息</h3>
+        </div>
+        <div class="form-container">
+          <a-form
+            name="pictureForm"
+            layout="vertical"
+            :model="pictureForm"
+            @finish="handleSubmit"
+            class="picture-form"
+          >
+            <a-form-item name="name" label="名称" class="form-item">
+              <a-input
+                v-model:value="pictureForm.name"
+                placeholder="输入图片名称"
+                allow-clear
+                class="custom-input"
+              />
+            </a-form-item>
+
+            <a-form-item name="introduction" label="简介" class="form-item">
+              <a-textarea
+                v-model:value="pictureForm.introduction"
+                placeholder="输入图片简介"
+                :autoSize="{ minRows: 3, maxRows: 6 }"
+                allow-clear
+                class="custom-textarea"
+              />
+            </a-form-item>
+
+            <a-form-item name="category" label="分类" class="form-item">
+              <a-auto-complete
+                v-model:value="pictureForm.category"
+                :options="categoryOptions"
+                placeholder="输入图片分类"
+                allow-clear
+                class="custom-input"
+              />
+            </a-form-item>
+
+            <a-form-item name="tags" label="标签" class="form-item">
+              <a-select
+                v-model:value="pictureForm.tags"
+                :options="tagOptions"
+                mode="tags"
+                placeholder="输入图片标签"
+                class="custom-select"
+              />
+            </a-form-item>
+
+            <a-form-item class="submit-item">
+              <a-button type="primary" html-type="submit" class="submit-button">
+                {{ route.query?.id ? '修改图片' : '创建图片' }}
+              </a-button>
+            </a-form-item>
+          </a-form>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -260,16 +308,285 @@ const fetchSpace = async () => {
 watchEffect(() => {
   fetchSpace()
 })
-
 </script>
 <style scoped>
-#addPicturePage {
-  max-width: 720px;
+.add-picture-page {
+  max-width: 800px;
   margin: 0 auto;
+  padding: 16px;
+  min-height: 100vh;
 }
 
-#addPicturePage .edit-bar {
+/* 页面头部 */
+.page-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 16px 16px 0 0;
+}
+
+.header-content {
   text-align: center;
-  margin: 16px 0;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 8px 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.space-info {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.space-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.space-link:hover {
+  color: #4f46e5;
+}
+
+/* 主要内容区域 */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 通用区域样式 */
+.upload-section,
+.form-section,
+.edit-section {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upload-section:hover,
+.form-section:hover,
+.edit-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.12);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.section-header {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 18px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 2px;
+}
+
+/* 上传区域样式 */
+.upload-tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 12px;
+}
+
+.upload-tabs :deep(.ant-tabs-content-holder) {
+  border-radius: 0 0 8px 8px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  border-top: none;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 16px;
+}
+
+/* 表单样式 */
+.form-container {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(102, 126, 234, 0.05);
+}
+
+.picture-form .form-item {
+  margin-bottom: 16px;
+}
+
+/* 表单样式 */
+.form-container {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid rgba(102, 126, 234, 0.05);
+}
+
+.picture-form .form-item {
+  margin-bottom: 20px;
+}
+
+.picture-form :deep(.ant-form-item-label > label) {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.custom-input,
+.custom-textarea,
+.custom-select {
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.custom-input:hover,
+.custom-textarea:hover,
+.custom-select:hover {
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.custom-input:focus,
+.custom-textarea:focus,
+.custom-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.submit-item {
+  margin-bottom: 0;
+  margin-top: 32px;
+}
+
+.submit-button {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+/* 编辑工具栏样式 */
+.edit-tools {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.edit-tool-btn {
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  color: #667eea;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+}
+
+.edit-tool-btn:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.edit-tool-btn:active {
+  transform: translateY(0);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .add-picture-page {
+    padding: 16px;
+  }
+
+  .page-header,
+  .upload-section,
+  .form-section,
+  .edit-section {
+    padding: 20px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .edit-tools {
+    flex-direction: column;
+  }
+
+  .edit-tool-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .add-picture-page {
+    padding: 12px;
+  }
+
+  .page-header,
+  .upload-section,
+  .form-section,
+  .edit-section {
+    padding: 16px;
+  }
+
+  .form-container {
+    padding: 16px;
+  }
 }
 </style>
