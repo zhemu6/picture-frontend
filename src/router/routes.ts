@@ -136,6 +136,15 @@ const routes = [
   },
 
   {
+    path: '/picture_rank',
+    name: '最佳照片榜',
+    component: () => import('@/pages/PictureRank.vue'),
+    meta: {
+      access: ACCESS_CONSTANTS.USER, // 不登录也可以看到
+    },
+  },
+
+  {
     path: '/space/:id',
     name: '空间详情',
     props: true,

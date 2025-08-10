@@ -527,7 +527,7 @@ const shareLink = ref<string>()
 const doShare = () => {
   shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
   if (shareModalRef.value) {
-    shareModalRef.value.openModal()
+    shareModalRef.value.open()
   }
 }
 

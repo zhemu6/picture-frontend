@@ -37,6 +37,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListPictureRankVO_ = {
+    code?: number
+    data?: PictureRankVO[]
+    message?: string
+  }
+
   type BaseResponseListPictureVO_ = {
     code?: number
     data?: PictureVO[]
@@ -490,6 +496,19 @@ declare namespace API {
     userId?: number
   }
 
+  type PictureRankVO = {
+    category?: string
+    introduction?: string
+    likeCount?: number
+    name?: string
+    pictureId?: number
+    rankNum?: number
+    tags?: string[]
+    thumbnailUrl?: string
+    type?: string
+    url?: string
+  }
+
   type PictureReviewRequest = {
     id?: number
     reviewMessage?: string
@@ -558,6 +577,11 @@ declare namespace API {
     url?: string
     user?: UserVO
     userId?: number
+  }
+
+  type rankPictureUsingGETParams = {
+    /** type */
+    type: string
   }
 
   type Result = {
